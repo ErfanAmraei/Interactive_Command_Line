@@ -1,0 +1,75 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: µVision V5.39.0.0
+Copyright (C) 2023 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: erfan amraei, subar, LIC=X1E4T-RUI6I-TLACD-8FIQ6-J5CIC-2XTJN
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Professional  Version: 5.39.0.0
+Toolchain Path:  C:\Keil_v5\ARM\ARMCLANG\Bin
+C Compiler:      ArmClang.exe V6.21
+Assembler:       Armasm.exe V6.21
+Linker/Locator:  ArmLink.exe V6.21
+Library Manager: ArmAr.exe V6.21
+Hex Converter:   FromElf.exe V6.21
+CPU DLL:         SARMCM3.DLL V5.39.0.0
+Dialog DLL:      DARMSTM.DLL V1.69.1.0
+Target DLL:      UL2CM3.DLL V1.164.9.0
+Dialog DLL:      TARMSTM.DLL V1.67.1.0
+ 
+<h2>Project:</h2>
+D:\Keil-Project\UART-Interactive-Command-Line\UART-Interactive-Command-Line.uvproj
+Project File Date:  01/03/2025
+
+<h2>Output:</h2>
+*** Using Compiler 'V6.21', folder: 'C:\Keil_v5\ARM\ARMCLANG\Bin'
+Build target 'Target'
+assembling startup_stm32f10x_md.s...
+CMSIS/system_stm32/system_stm32f10x.c(65): warning: In file included from...
+./Headers\stm32f10x.h(480): error: 'core_cm3.h' file not found
+  480 | #include "core_cm3.h"
+      |          ^~~~~~~~~~~~
+1 error generated.
+compiling system_stm32f10x.c...
+CMSIS/stm32f10x_gpio.c(23): warning: In file included from...
+./Headers\stm32f10x_gpio.h(32): warning: In file included from...
+./Headers/stm32f10x.h(480): error: 'core_cm3.h' file not found
+  480 | #include "core_cm3.h"
+      |          ^~~~~~~~~~~~
+1 error generated.
+compiling stm32f10x_gpio.c...
+CMSIS/stm32f10x_rcc.c(23): warning: In file included from...
+./Headers\stm32f10x_rcc.h(32): warning: In file included from...
+./Headers/stm32f10x.h(480): error: 'core_cm3.h' file not found
+  480 | #include "core_cm3.h"
+      |          ^~~~~~~~~~~~
+1 error generated.
+compiling stm32f10x_rcc.c...
+CMSIS/stm32f10x_usart.c(23): warning: In file included from...
+./Headers\stm32f10x_usart.h(32): warning: In file included from...
+./Headers/stm32f10x.h(480): error: 'core_cm3.h' file not found
+  480 | #include "core_cm3.h"
+      |          ^~~~~~~~~~~~
+1 error generated.
+compiling stm32f10x_usart.c...
+Source Files/UART-Command-Line.c(10): warning: In file included from...
+./Headers\stm32f10x.h(480): error: 'core_cm3.h' file not found
+  480 | #include "core_cm3.h"
+      |          ^~~~~~~~~~~~
+1 error generated.
+compiling UART-Command-Line.c...
+main.c(1): warning: In file included from...
+./Headers\stm32f10x.h(480): error: 'core_cm3.h' file not found
+  480 | #include "core_cm3.h"
+      |          ^~~~~~~~~~~~
+1 error generated.
+compiling main.c...
+".\Objects\UART-Interactive-Command-Line.axf" - 6 Error(s), 0 Warning(s).
+Target not created.
+Build Time Elapsed:  00:00:01
+</pre>
+</body>
+</html>
