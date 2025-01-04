@@ -7,120 +7,92 @@
   *          firmware functions.
   ******************************************************************************/
 
-#include "stm32f10x.h"
-#include "stm32f10x_rcc.h"
-#include "stm32f10x_gpio.h"
-#include "stm32f10x_usart.h"
+#include "HAL-SYSTEM/inc/stm32f10x.h"
+
 #include "UART_Command_Line.h"
 #include <stdio.h>
 #include <string.h>
 
 
-
-//printf init
-struct __FILE { int handle;} ;
-FILE __stdout;
-FILE __stdin;
-FILE __stderr;
-//when ever printf is called, fputs will be executed and sends all characters through USART2
-int fputc(int character, FILE *f)  
-{
-	while(!USART_GetFlagStatus(USART2,USART_FLAG_TXE));	 													 
-	USART_SendData(USART2,character);
-	return character;	
-}
-
-/***********************************************************************
-* @breif USART2_Configuration is used to prepare USART2 Configuration
+/**
+* @brief Callback function to process and set LED value based on command.
 *
-* @param none
+* This function checks the input pointer, logs the incoming command, 
+* and processes it to set the appropriate LED value. It returns an 
+* error status indicating success or failure.
 *
-* @retval none
-*/
-void USART2_Configuration(void)
-{
-	GPIO_InitTypeDef   GPIO_USART_Config;
-	USART_InitTypeDef  USART2_Config;
-	//Enabling USART2 Clock
-  RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
-	//Enabling GPIOA Clock
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
-	//USART2 Alternate Function mapping
-	GPIO_PinRemapConfig(GPIO_Remap_USART2, ENABLE);
-	//configuring of GPIOA Pin_2 for Transfering Data
-	GPIO_USART_Config.GPIO_Mode  = GPIO_Mode_AF_PP;
-	GPIO_USART_Config.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_USART_Config.GPIO_Pin   = GPIO_Pin_2;
-	GPIO_Init(GPIOA, &GPIO_USART_Config);
-	
-	//configuring of GPIOA Pin_2 for Receiving Data
-	GPIO_USART_Config.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
-	GPIO_USART_Config.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_USART_Config.GPIO_Pin   = GPIO_Pin_3;
-	GPIO_Init(GPIOA, &GPIO_USART_Config);
-	
-	//USART2 Configuration
-	USART2_Config.USART_BaudRate            = USART_BAUD_RATE;
-	USART2_Config.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-	USART2_Config.USART_Mode                = USART_Mode_Tx | USART_Mode_Rx;
-	USART2_Config.USART_Parity              = USART_Parity_No;
-	USART2_Config.USART_StopBits            = USART_StopBits_1;
-	USART2_Config.USART_WordLength          = USART_WordLength_8b;
-	USART_Init(USART2, &USART2_Config);
-	//enabling Interrupt
-	USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
-	//This function sets the priority grouping field
-	NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
-	//set USART2 Periority in NVIC
-	NVIC_SetPriority(USART2_IRQn, USART_NVIC_PERIORITY);
-	//enabling USART2 interrupt in NVIC
-	NVIC_EnableIRQ(USART2_IRQn);
-	//enable USART2
-	USART_Cmd(USART2, ENABLE);
-}
-
-/********************************************************************
-* @brief defining first callback function
+* @param [in] *CommandContent Pointer to the incomingCommandContents structure.
 *
-* @param *CommandContent points to incommingCommandContents structure
-*
-* @retval ErrorStatus indicates if input pointer is null.
+* @retval SUCCESS if the command is successfully processed.
+* @retval ERROR if the input pointer is null or processing fails.
 */
 ErrorStatus SetLedValue(struct incommingCommandContents *CommandContent) 
 {
-	  //check the input pointer
-	  assert_param(CommandContent);
+    // Initialize outcome as ERROR to handle potential failures.
+    ErrorStatus outcome = ERROR;
     
-    printf("\nFirst Command: %s\n",CommandContent->Command);
-    printf("received and processed\n");
-    // Implement setting LED value based on CommandContent
-		//
-		//
-		return SUCCESS;
+    // Check if the input pointer is valid; return ERROR if NULL.
+    if (CommandContent == NULL) 
+    {
+      printf("Error: CommandContent pointer is null.\n");
+    }
+    else
+    {
+      // Log the first command from the incoming structure.
+      printf("\nFirst Command: %s\n", CommandContent->Command);
+      
+      // Indicate that the command was received and processed.
+      printf("Command received and processed.\n");
+      
+      // Set outcome to SUCCESS since the command was successfully logged.
+      outcome = SUCCESS;
+    }
+    
+    // Return the final outcome of the processing.
+    return outcome;
 }
+
 
 
 /**********************************************************************
-* @brief defining second callback function
+* @brief Callback function to retrieve the heater value based on command.
 *
-* @param *CommandContent points to incommingCommandContents structure
+* This function validates the input pointer, logs the incoming command, 
+* and processes it to retrieve the heater value. It returns an error 
+* status indicating success or failure.
 *
-* @retval ErrorStatus indicates if input pointer is null.
+* @param [in] *CommandContent Pointer to the incomingCommandContents structure.
+*
+* @retval SUCCESS if the command is successfully processed.
+* @retval ERROR if the input pointer is null or processing fails.
 */
 ErrorStatus GetHeaterValue(struct incommingCommandContents *CommandContent) 
 {
-	  //check the input pointer
-	  if(CommandContent == NULL)
-		{
-			return ERROR;
-		}
-    printf("\nSecond Command: %s\n",CommandContent->Command);
-    printf("received and processed\n");
-    // Implement getting heater value based on CommandContent
-		//
-		//
-		return SUCCESS;
+    // Initialize outcome as ERROR to handle failure cases.
+    ErrorStatus outcome = ERROR;
+    
+    // Validate the input pointer to ensure it is not null.
+    if (CommandContent == NULL) 
+    {
+        // Log an error message for null pointer.
+        printf("Error: CommandContent pointer is null.\n");
+    } 
+    else 
+    {
+        // Log the second command from the incoming structure.
+        printf("\nSecond Command: %s\n", CommandContent->Command);
+        
+        // Indicate that the command was received and processed.
+        printf("Command received and processed.\n");
+        
+        // Update outcome to SUCCESS as processing was successful.
+        outcome = SUCCESS;
+    }
+    
+    // Return the final outcome of the processing.
+    return outcome;
 }
+
 
 /*****************************************************************************************************
 * @brief splitingInputString is used to Tokenize input string to extract command and arguments

@@ -11,4 +11,6 @@ typedef enum {
     HAL_UNSUPPORTED = 5 // Operation not supported
 } HAL_StatusTypeDef;
 
+void HAL_config_MCU(void);
+
 #endif /* __HAL_COMM_H */

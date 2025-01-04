@@ -11,7 +11,7 @@
 
 
 
-#include "hal_gpio_config.h"
+#include "../inc/hal_gpio_config.h"
 
 /**
  * @brief Configures GPIO pins for USART2 communication.
@@ -22,22 +22,22 @@ void HAL_GPIO_Config(void)
 {
     GPIO_InitTypeDef GPIO_USART_Config;
 
-    // Enable clock for GPIOA to access its pins
+    //enable clock for GPIOA to access its pins
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
 
-    // Enable alternate function remapping for USART2
+    //enable alternate function remapping for USART2
     GPIO_PinRemapConfig(GPIO_Remap_USART2, ENABLE);
 
-    // Configure PA2 as TX (Transmit) with Alternate Function Push-Pull mode
-    GPIO_USART_Config.GPIO_Mode  = GPIO_Mode_AF_PP;  // Alternate Function Push-Pull
-    GPIO_USART_Config.GPIO_Speed = GPIO_Speed_50MHz; // High-speed configuration
-    GPIO_USART_Config.GPIO_Pin   = GPIO_Pin_2;       // Select pin PA2
-    GPIO_Init(GPIOA, &GPIO_USART_Config);           // Initialize GPIOA Pin 2
+    //configure PA2 as TX (Transmit) with Alternate Function Push-Pull mode
+    GPIO_USART_Config.GPIO_Mode  = GPIO_Mode_AF_PP;  //Alternate Function Push-Pull
+    GPIO_USART_Config.GPIO_Speed = GPIO_Speed_50MHz; //High-speed configuration
+    GPIO_USART_Config.GPIO_Pin   = GPIO_Pin_2;       //Select pin PA2
+    GPIO_Init(GPIOA, &GPIO_USART_Config);           //Initialize GPIOA Pin 2
 
-    // Configure PA3 as RX (Receive) with Floating Input mode
-    GPIO_USART_Config.GPIO_Mode  = GPIO_Mode_IN_FLOATING; // Input floating
-    GPIO_USART_Config.GPIO_Pin   = GPIO_Pin_3;            // Select pin PA3
-    GPIO_Init(GPIOA, &GPIO_USART_Config);                // Initialize GPIOA Pin 3
+    //Configure PA3 as RX (Receive) with Floating Input mode
+    GPIO_USART_Config.GPIO_Mode  = GPIO_Mode_IN_FLOATING; //Input floating
+    GPIO_USART_Config.GPIO_Pin   = GPIO_Pin_3;            //Select pin PA3
+    GPIO_Init(GPIOA, &GPIO_USART_Config);                //Initialize GPIOA Pin 3
 }
 
 

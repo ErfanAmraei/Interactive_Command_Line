@@ -12,7 +12,7 @@
  */
 
 
-#include "hal_usart2_config.h"
+#include "../inc/hal_usart2_config.h"
 
 
 // Initializes the standard I/O (printf) mechanism for embedded systems 
@@ -44,10 +44,10 @@ void HAL_USART2_Config(void)
 {
     USART_InitTypeDef USART2_Config;
 
-    // Enable clock for USART2 to prepare it for initialization
+    //enable clock for USART2 to prepare it for initialization
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
 
-    // Configure USART2 parameters
+    //configure USART2 parameters
     USART2_Config.USART_BaudRate            = USART_BAUD_RATE;           // Set baud rate (defined elsewhere)
     USART2_Config.USART_HardwareFlowControl = USART_HardwareFlowControl_None; // No hardware flow control
     USART2_Config.USART_Mode                = USART_Mode_Tx | USART_Mode_Rx;  // Enable both TX and RX modes
@@ -56,15 +56,15 @@ void HAL_USART2_Config(void)
     USART2_Config.USART_WordLength          = USART_WordLength_8b;       // 8-bit word length
     USART_Init(USART2, &USART2_Config);                                  // Initialize USART2 with the configuration
 
-    // Enable the RXNE (Receive Data Register Not Empty) interrupt
+    //enable the RXNE (Receive Data Register Not Empty) interrupt
     USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
 
-    // Configure NVIC for USART2 interrupts
-    NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4); // Set priority grouping
-    NVIC_SetPriority(USART2_IRQn, USART_NVIC_PERIORITY); // Set interrupt priority
-    NVIC_EnableIRQ(USART2_IRQn);                   // Enable USART2 interrupt in NVIC
+    //configure NVIC for USART2 interrupts
+    NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4); //set priority grouping
+    NVIC_SetPriority(USART2_IRQn, USART_NVIC_PERIORITY); //Set interrupt priority
+    NVIC_EnableIRQ(USART2_IRQn);                   //enable USART2 interrupt in NVIC
 
-    // Enable USART2 for communication
+    //enable USART2 for communication
     USART_Cmd(USART2, ENABLE);
 }
 

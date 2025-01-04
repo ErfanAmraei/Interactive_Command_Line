@@ -63,9 +63,6 @@ typedef enum
    Full  = !Empty,
 }incommingCommandBufferStatus;
 
-
-//USART2_Configuration prototype
-void USART2_Configuration(void);
 //SetLedValue prototype
 ErrorStatus SetLedValue(struct incommingCommandContents *CommandContent);
 //GetHeaterValue

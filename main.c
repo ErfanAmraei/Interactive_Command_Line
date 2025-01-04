@@ -1,6 +1,6 @@
 #include "stm32f10x.h"
 #include "UART_Command_Line.h"
-#include "stm32f10x_usart.h"
+#include "HAL-SYSTEM/inc/HAL_Common.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -30,8 +30,7 @@ uint8_t callbackFunctionIndex;
 uint32_t i;
 int main()
 {
-	//USART 2 Configuratin
-	USART2_Configuration();
+	HAL_config_MCU();
 	while(1)
 	{
 		 //check if we have a full message
