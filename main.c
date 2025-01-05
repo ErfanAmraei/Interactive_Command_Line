@@ -1,8 +1,10 @@
 #include "stm32f10x.h"
-#include "UART_Command_Line.h"
+#include "Headers/UART_Command_Line.h"
 #include "HAL-SYSTEM/inc/HAL_Common.h"
 #include <stdio.h>
 #include <string.h>
+
+extern const char* UART_Message[];
 
 //IncommingCommandBuffer is a place in memory where incomming command is saved
 char IncommingCommandBuffer[MAX_USER_COMMAND_LENGTH];
@@ -33,39 +35,39 @@ int main()
 	HAL_config_MCU();
 	while(1)
 	{
-		 //check if we have a full message
-		 if(Full == CommandBufferStatus)
-		 {
+		//check if we have a full message
+		if(Full == CommandBufferStatus)
+		{
 		    // Process the command, callbackFunctionIndex is holding the index of callback function corresponding to the user command
-        callbackFunctionIndex = ParseCommand(IncommingCommandBuffer, &CommandContent, commandList, argumentDelimeter, &CommandValidation, &ErrorHandler);
-			  if(ErrorHandler == SUCCESS)
-				{					
+             callbackFunctionIndex = ParseCommand(IncommingCommandBuffer, &CommandContent, commandList, argumentDelimeter, &CommandValidation, &ErrorHandler);
+			if(ErrorHandler == SUCCESS)
+			{					
 			    //CommandValidation shows that if user command is valid
 			    if(Valid == CommandValidation)
-          {
+                {
 					   //calling callback function corresponding to the user command
-             callbackFunction = commandList[callbackFunctionIndex].callback;
-             ErrorHandler = callbackFunction(&CommandContent);
-						 if(ErrorHandler == ERROR)
-						 {
-							 printf("\nError happend in callback functions\n");
-						 }
-          }
-				  //if user command is invalid then "invalid command" will be send on UART
-          else
+                    callbackFunction = commandList[callbackFunctionIndex].callback;
+                    ErrorHandler = callbackFunction(&CommandContent);
+					if(ErrorHandler == ERROR)
 					{
-            printf("\nInvalid command. you are not allowed to send such commands\n");
-          }
-				}
-				else
+						printf(UART_Message[ERR_CALLBACK]);
+					}
+                }
+				  //if user command is invalid then "invalid command" will be send on UART
+                else
 				{
-          printf("\nError happend when parsing user command\n");
-        }
-				//clearing the buffer for the next command
-				memset(IncommingCommandBuffer, 0 , sizeof(IncommingCommandBuffer));
-				//make CommandBufferStatus empty for another user command
-				CommandBufferStatus = Empty;
-			}
+                    printf(UART_Message[ERR_INVALID_COMMAND]);
+                }
+		    }
+			else
+			{
+                 printf(UART_Message[ERR_PARSING_COMMAND]);
+            }
+			//clearing the buffer for the next command
+			memset(IncommingCommandBuffer, 0 , sizeof(IncommingCommandBuffer));
+			//make CommandBufferStatus empty for another user command
+			CommandBufferStatus = Empty;
+		}
 	}
 }
 

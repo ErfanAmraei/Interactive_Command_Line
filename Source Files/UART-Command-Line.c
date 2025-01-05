@@ -9,11 +9,11 @@
 
 #include "HAL-SYSTEM/inc/stm32f10x.h"
 
-#include "UART_Command_Line.h"
+#include "../Headers/UART_Command_Line.h"
 #include <stdio.h>
 #include <string.h>
 
-
+extern const char* UART_Message[];
 /**
 * @brief Callback function to process and set LED value based on command.
 *
@@ -34,15 +34,15 @@ ErrorStatus SetLedValue(struct incommingCommandContents *CommandContent)
     // Check if the input pointer is valid; return ERROR if NULL.
     if (CommandContent == NULL) 
     {
-      printf("Error: CommandContent pointer is null.\n");
+      printf(UART_Message[ERR_NULL_POINTER]);
     }
     else
     {
       // Log the first command from the incoming structure.
-      printf("\nFirst Command: %s\n", CommandContent->Command);
+      printf(UART_Message[FIRST_CMD], CommandContent->Command);
       
       // Indicate that the command was received and processed.
-      printf("Command received and processed.\n");
+      printf(UART_Message[CMD_PROCESSED]);
       
       // Set outcome to SUCCESS since the command was successfully logged.
       outcome = SUCCESS;
@@ -75,15 +75,15 @@ ErrorStatus GetHeaterValue(struct incommingCommandContents *CommandContent)
     if (CommandContent == NULL) 
     {
         // Log an error message for null pointer.
-        printf("Error: CommandContent pointer is null.\n");
+        printf(UART_Message[ERR_NULL_POINTER]);
     } 
     else 
     {
         // Log the second command from the incoming structure.
-        printf("\nSecond Command: %s\n", CommandContent->Command);
+        printf(UART_Message[SECOND_CMD], CommandContent->Command);
         
         // Indicate that the command was received and processed.
-        printf("Command received and processed.\n");
+        printf(UART_Message[CMD_PROCESSED]);
         
         // Update outcome to SUCCESS as processing was successful.
         outcome = SUCCESS;

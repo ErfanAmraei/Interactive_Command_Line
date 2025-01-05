@@ -24,7 +24,37 @@ struct incommingCommandContents
 };
 
 
-/******************************************************************************
+/**
+ * @brief Enum to define the indexes of the UART_Message array
+*/
+typedef enum {
+    ERR_NULL_POINTER,     // Index 0: "Error: CommandContent pointer is null.\n"
+    CMD_PROCESSED,        // Index 1: "Command received and processed.\n"
+    ERR_CALLBACK,         // Index 2: "\nError happened in callback functions\n"
+    ERR_INVALID_COMMAND,  // Index 3: "\nInvalid command. You are not allowed to send such commands\n"
+    ERR_PARSING_COMMAND,  // Index 4: "\nError happened when parsing user command\n"
+    FIRST_CMD,            // Index 5: "\nFirst Command: %s\n"
+    SECOND_CMD,           // Index 6: "\nSecond Command: %s\n"
+    UART_MESSAGES_COUNT   // Total number of messages (useful for iteration)
+} UART_MessageIndex;
+
+/**
+/* @brief array of UART message strings used for logging and debugging purposes.
+*/
+const char* UART_Message[] = 
+{
+   "Error: CommandContent pointer is null.\n",
+   "Command received and processed.\n",
+   "\nError happend in callback functions\n",
+   "\nInvalid command. you are not allowed to send such commands\n",
+   "\nError happend when parsing user command\n",
+   "\nFirst Command: %s\n",
+   "\nSecond Command: %s\n",
+   NULL //proper termination for an array of pointers
+}
+
+
+/**
 * @brief defining a function pointer type named CommandCallback
 *
 * @param *CommandContent points to incommingCommandContents structure
@@ -34,7 +64,7 @@ struct incommingCommandContents
 typedef ErrorStatus (*CommandCallback)(struct incommingCommandContents *CommandContent);
 
 
-/********************************************************************************
+/**
 * @brief CommandEntry is used to configure input commands and callback functions
 */
 struct CommandEntry
@@ -44,7 +74,7 @@ struct CommandEntry
 };
 
 
-/********************************************************************************
+/**
  * @brief CommandValidation_Handler is used to show the validity of input string
 */
 typedef enum 
@@ -53,7 +83,7 @@ typedef enum
 	Valid   = !Invalid,
 }CommandValidation_Handler;
 
-/********************************************************************************
+/**
  * @brief incommingCommandBufferStatus is used to show that the user string from UART is
  *        is full or empty
 */
