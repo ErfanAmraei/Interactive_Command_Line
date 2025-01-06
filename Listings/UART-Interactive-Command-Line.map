@@ -23,7 +23,7 @@ Section Cross References
     main.o(i.USART2_IRQHandler) refers to main.o(.bss) for IncommingCommandBuffer
     main.o(i.USART2_IRQHandler) refers to main.o(.data) for Counter
     main.o(i.main) refers to uart-command-line.o(i.USART2_Configuration) for USART2_Configuration
-    main.o(i.main) refers to uart-command-line.o(i.ParseCommand) for ParseCommand
+    main.o(i.main) refers to uart-command-line.o(i.compare_Incomming_CMD_with_CMD_Library) for compare_Incomming_CMD_with_CMD_Library
     main.o(i.main) refers to noretval__2printf.o(.text) for __2printf
     main.o(i.main) refers to rt_memclr.o(.text) for __aeabi_memclr
     main.o(i.main) refers to main.o(.data) for CommandBufferStatus
@@ -42,8 +42,8 @@ Section Cross References
     uart-command-line.o(i.GetHeaterValue) refers to _printf_s.o(.ARM.Collect$$_printf_percent$$00000014) for _printf_s
     uart-command-line.o(i.GetHeaterValue) refers to _printf_str.o(.text) for _printf_str
     uart-command-line.o(i.GetHeaterValue) refers to noretval__2printf.o(.text) for __2printf
-    uart-command-line.o(i.ParseCommand) refers to strstr.o(.text) for strstr
-    uart-command-line.o(i.ParseCommand) refers to uart-command-line.o(i.splitingInputString) for splitingInputString
+    uart-command-line.o(i.compare_Incomming_CMD_with_CMD_Library) refers to strstr.o(.text) for strstr
+    uart-command-line.o(i.compare_Incomming_CMD_with_CMD_Library) refers to uart-command-line.o(i.parseCommandWithArguments) for parseCommandWithArguments
     uart-command-line.o(i.SetLedValue) refers to _printf_percent.o(.ARM.Collect$$_printf_percent$$00000000) for _printf_percent
     uart-command-line.o(i.SetLedValue) refers to _printf_s.o(.ARM.Collect$$_printf_percent$$00000014) for _printf_s
     uart-command-line.o(i.SetLedValue) refers to _printf_str.o(.text) for _printf_str
@@ -57,12 +57,12 @@ Section Cross References
     uart-command-line.o(i.USART2_Configuration) refers to stm32f10x_usart.o(i.USART_Cmd) for USART_Cmd
     uart-command-line.o(i.fputc) refers to stm32f10x_usart.o(i.USART_GetFlagStatus) for USART_GetFlagStatus
     uart-command-line.o(i.fputc) refers to stm32f10x_usart.o(i.USART_SendData) for USART_SendData
-    uart-command-line.o(i.splitingInputString) refers to _printf_percent.o(.ARM.Collect$$_printf_percent$$00000000) for _printf_percent
-    uart-command-line.o(i.splitingInputString) refers to _printf_s.o(.ARM.Collect$$_printf_percent$$00000014) for _printf_s
-    uart-command-line.o(i.splitingInputString) refers to _printf_str.o(.text) for _printf_str
-    uart-command-line.o(i.splitingInputString) refers to strtok.o(.text) for strtok
-    uart-command-line.o(i.splitingInputString) refers to noretval__2sprintf.o(.text) for __2sprintf
-    uart-command-line.o(i.splitingInputString) refers to rt_memclr.o(.text) for __aeabi_memclr
+    uart-command-line.o(i.parseCommandWithArguments) refers to _printf_percent.o(.ARM.Collect$$_printf_percent$$00000000) for _printf_percent
+    uart-command-line.o(i.parseCommandWithArguments) refers to _printf_s.o(.ARM.Collect$$_printf_percent$$00000014) for _printf_s
+    uart-command-line.o(i.parseCommandWithArguments) refers to _printf_str.o(.text) for _printf_str
+    uart-command-line.o(i.parseCommandWithArguments) refers to strtok.o(.text) for strtok
+    uart-command-line.o(i.parseCommandWithArguments) refers to noretval__2sprintf.o(.text) for __2sprintf
+    uart-command-line.o(i.parseCommandWithArguments) refers to rt_memclr.o(.text) for __aeabi_memclr
     __2printf.o(.text) refers to _printf_char_file.o(.text) for _printf_char_file
     __2printf.o(.text) refers to uart-command-line.o(.data) for __stdout
     __2sprintf.o(.text) refers to _printf_char_common.o(.text) for _printf_char_common
@@ -466,7 +466,7 @@ Image Symbol Table
     i.GPIO_Init                              0x0800051e   Section        0  stm32f10x_gpio.o(i.GPIO_Init)
     i.GPIO_PinRemapConfig                    0x08000634   Section        0  stm32f10x_gpio.o(i.GPIO_PinRemapConfig)
     i.GetHeaterValue                         0x080006c4   Section        0  uart-command-line.o(i.GetHeaterValue)
-    i.ParseCommand                           0x08000710   Section        0  uart-command-line.o(i.ParseCommand)
+    i.compare_Incomming_CMD_with_CMD_Library                           0x08000710   Section        0  uart-command-line.o(i.compare_Incomming_CMD_with_CMD_Library)
     i.RCC_APB1PeriphClockCmd                 0x08000788   Section        0  stm32f10x_rcc.o(i.RCC_APB1PeriphClockCmd)
     i.RCC_APB2PeriphClockCmd                 0x080007a8   Section        0  stm32f10x_rcc.o(i.RCC_APB2PeriphClockCmd)
     i.RCC_GetClocksFreq                      0x080007c8   Section        0  stm32f10x_rcc.o(i.RCC_GetClocksFreq)
@@ -486,7 +486,7 @@ Image Symbol Table
     i.USART_SendData                         0x08000cee   Section        0  stm32f10x_usart.o(i.USART_SendData)
     i.fputc                                  0x08000cf8   Section        0  uart-command-line.o(i.fputc)
     i.main                                   0x08000d1c   Section        0  main.o(i.main)
-    i.splitingInputString                    0x08000e58   Section        0  uart-command-line.o(i.splitingInputString)
+    i.parseCommandWithArguments                    0x08000e58   Section        0  uart-command-line.o(i.parseCommandWithArguments)
     .constdata                               0x08000f48   Section        2  main.o(.constdata)
     .data                                    0x20000000   Section       93  main.o(.data)
     Counter                                  0x2000005c   Data           1  main.o(.data)
@@ -688,7 +688,7 @@ Image Symbol Table
     __semihosting_library_function           0x0800051f   Thumb Code     0  indicate_semi.o(.text)
     GPIO_PinRemapConfig                      0x08000635   Thumb Code   138  stm32f10x_gpio.o(i.GPIO_PinRemapConfig)
     GetHeaterValue                           0x080006c5   Thumb Code    28  uart-command-line.o(i.GetHeaterValue)
-    ParseCommand                             0x08000711   Thumb Code   118  uart-command-line.o(i.ParseCommand)
+    compare_Incomming_CMD_with_CMD_Library                             0x08000711   Thumb Code   118  uart-command-line.o(i.compare_Incomming_CMD_with_CMD_Library)
     RCC_APB1PeriphClockCmd                   0x08000789   Thumb Code    26  stm32f10x_rcc.o(i.RCC_APB1PeriphClockCmd)
     RCC_APB2PeriphClockCmd                   0x080007a9   Thumb Code    26  stm32f10x_rcc.o(i.RCC_APB2PeriphClockCmd)
     RCC_GetClocksFreq                        0x080007c9   Thumb Code   192  stm32f10x_rcc.o(i.RCC_GetClocksFreq)
@@ -704,7 +704,7 @@ Image Symbol Table
     USART_SendData                           0x08000cef   Thumb Code     8  stm32f10x_usart.o(i.USART_SendData)
     fputc                                    0x08000cf9   Thumb Code    32  uart-command-line.o(i.fputc)
     main                                     0x08000d1d   Thumb Code   132  main.o(i.main)
-    splitingInputString                      0x08000e59   Thumb Code   234  uart-command-line.o(i.splitingInputString)
+    parseCommandWithArguments                      0x08000e59   Thumb Code   234  uart-command-line.o(i.parseCommandWithArguments)
     argumentDelimeter                        0x08000f48   Data           2  main.o(.constdata)
     Region$$Table$$Base                      0x08000f4c   Number         0  anon$$obj.o(Region$$Table)
     Region$$Table$$Limit                     0x08000f6c   Number         0  anon$$obj.o(Region$$Table)
@@ -818,7 +818,7 @@ Memory Map of the image
     0x0800051e   0x0800051e   0x00000116   Code   RO          140    i.GPIO_Init         stm32f10x_gpio.o
     0x08000634   0x08000634   0x00000090   Code   RO          142    i.GPIO_PinRemapConfig  stm32f10x_gpio.o
     0x080006c4   0x080006c4   0x0000004c   Code   RO          652    i.GetHeaterValue    uart-command-line.o
-    0x08000710   0x08000710   0x00000076   Code   RO          653    i.ParseCommand      uart-command-line.o
+    0x08000710   0x08000710   0x00000076   Code   RO          653    i.compare_Incomming_CMD_with_CMD_Library      uart-command-line.o
     0x08000786   0x08000786   0x00000002   PAD
     0x08000788   0x08000788   0x00000020   Code   RO          258    i.RCC_APB1PeriphClockCmd  stm32f10x_rcc.o
     0x080007a8   0x080007a8   0x00000020   Code   RO          260    i.RCC_APB2PeriphClockCmd  stm32f10x_rcc.o
@@ -838,7 +838,7 @@ Memory Map of the image
     0x08000cf6   0x08000cf6   0x00000002   PAD
     0x08000cf8   0x08000cf8   0x00000024   Code   RO          656    i.fputc             uart-command-line.o
     0x08000d1c   0x08000d1c   0x0000013c   Code   RO           87    i.main              main.o
-    0x08000e58   0x08000e58   0x000000f0   Code   RO          657    i.splitingInputString  uart-command-line.o
+    0x08000e58   0x08000e58   0x000000f0   Code   RO          657    i.parseCommandWithArguments  uart-command-line.o
     0x08000f48   0x08000f48   0x00000002   Data   RO           89    .constdata          main.o
     0x08000f4a   0x08000f4a   0x00000002   PAD
     0x08000f4c   0x08000f4c   0x00000020   Data   RO          934    Region$$Table       anon$$obj.o

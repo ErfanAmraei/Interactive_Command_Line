@@ -25,21 +25,20 @@ struct incommingCommandContents CommandContent;
 CommandValidation_Handler CommandValidation;
 //callback function
 CommandCallback callbackFunction;
-//arguments separator
-const char argumentDelimeter[] = ";"; 
+
 //the CallBack Function index in the commandList array will be stored in callbackFunctionIndex
 uint8_t callbackFunctionIndex;
 uint32_t i;
 int main()
 {
 	HAL_config_MCU();
-	while(1)
+	while()
 	{
 		//check if we have a full message
 		if(Full == CommandBufferStatus)
 		{
 		    // Process the command, callbackFunctionIndex is holding the index of callback function corresponding to the user command
-             callbackFunctionIndex = ParseCommand(IncommingCommandBuffer, &CommandContent, commandList, argumentDelimeter, &CommandValidation, &ErrorHandler);
+             callbackFunctionIndex = compare_Incomming_CMD_with_CMD_Library(IncommingCommandBuffer, &CommandContent, commandList, argumentDelimeter, &CommandValidation, &ErrorHandler);
 			if(ErrorHandler == SUCCESS)
 			{					
 			    //CommandValidation shows that if user command is valid

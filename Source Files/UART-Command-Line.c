@@ -8,10 +8,7 @@
   ******************************************************************************/
 
 #include "HAL-SYSTEM/inc/stm32f10x.h"
-
 #include "../Headers/UART_Command_Line.h"
-#include <stdio.h>
-#include <string.h>
 
 extern const char* UART_Message[];
 /**
@@ -34,15 +31,15 @@ ErrorStatus SetLedValue(struct incommingCommandContents *CommandContent)
     // Check if the input pointer is valid; return ERROR if NULL.
     if (CommandContent == NULL) 
     {
-      printf(UART_Message[ERR_NULL_POINTER]);
+      printf(UART_Message[(uint8_t)ERR_NULL_POINTER]);
     }
     else
     {
       // Log the first command from the incoming structure.
-      printf(UART_Message[FIRST_CMD], CommandContent->Command);
+      printf(UART_Message[(uint8_t)FIRST_CMD], CommandContent->Command);
       
       // Indicate that the command was received and processed.
-      printf(UART_Message[CMD_PROCESSED]);
+      printf(UART_Message[(uint8_t)CMD_PROCESSED]);
       
       // Set outcome to SUCCESS since the command was successfully logged.
       outcome = SUCCESS;
@@ -75,15 +72,15 @@ ErrorStatus GetHeaterValue(struct incommingCommandContents *CommandContent)
     if (CommandContent == NULL) 
     {
         // Log an error message for null pointer.
-        printf(UART_Message[ERR_NULL_POINTER]);
+        printf(UART_Message[(uint8_t)ERR_NULL_POINTER]);
     } 
     else 
     {
         // Log the second command from the incoming structure.
-        printf(UART_Message[SECOND_CMD], CommandContent->Command);
+        printf(UART_Message[(uint8_t)SECOND_CMD], CommandContent->Command);
         
         // Indicate that the command was received and processed.
-        printf(UART_Message[CMD_PROCESSED]);
+        printf(UART_Message[(uint8_t)CMD_PROCESSED]);
         
         // Update outcome to SUCCESS as processing was successful.
         outcome = SUCCESS;
@@ -94,142 +91,129 @@ ErrorStatus GetHeaterValue(struct incommingCommandContents *CommandContent)
 }
 
 
-/*****************************************************************************************************
-* @brief splitingInputString is used to Tokenize input string to extract command and arguments
+/**
+* @brief parseCommandWithArguments is used to tokenize the input string to extract a command and its arguments.
 *
-* @param *inputString is the input string from UART
+* This function splits an input string into a command and up to NO_OF_CMD_ARGUMENTS arguments using 
+* a specified delimiter. The results are stored in the incommingCommandContents structure.
 *
-* @param *CommandContent points to incommingCommandContents structure. it is called by reference
+* @param *incommingCommand: Pointer to the input string received (e.g., from UART).
+* @param *CommandContent: Pointer to the structure where the command and arguments will be stored.
 *
-* @param *delimiter points to the arguments separator
-*
-* @retval ErrorStatus indicates if any of the input pointer is null.
+* @retval ErrorStatus: Returns SUCCESS if operation is successful, or ERROR if any input pointer is NULL.
 */
-ErrorStatus splitingInputString(char *incommingCommand, struct incommingCommandContents *CommandContent, const char *delimiter)
-{
-	  //check the input pointers if any of them is null
-	  if(incommingCommand == NULL || CommandContent == NULL || delimiter == NULL)
-		{
-			return ERROR;
-		}
-    // Initialize strtok with the input string and delimiter
-    char *token = strtok(incommingCommand, delimiter);
-    if(NULL != token)
+ErrorStatus parseCommandWithArguments(char *incommingCommand, struct incommingCommandContents *CommandContent) {
+
+    // Check if any of the input pointers are NULL. Return ERROR if any is invalid.
+    if (incommingCommand == NULL || CommandContent == NULL) 
     {
-        sprintf(CommandContent->Command, "%s", token);
-    }
-    else
-    {
-			 memset(CommandContent->Command, 0, sizeof(CommandContent->Command));
+        return ERROR;
     }
 
-    token = strtok(NULL, delimiter); // Passing NULL continues splitting the same string
-    if(NULL != token)
+    // Tokenize the input string to extract the command (first token).
+    char *token = strtok(incommingCommand, DELIMETER);
+    if (token != NULL) 
     {
-        sprintf(CommandContent->FirstArgument, "%s", token);
-    }
-    else
+        // Copy the command into the Command field of the structure.
+        snprintf(CommandContent->Command, sizeof(CommandContent->Command), "%s", token);
+    } 
+    else 
     {
-			  memset(CommandContent->FirstArgument, 0, sizeof(CommandContent->Command));
-    }
-
-    token = strtok(NULL, delimiter); // Passing NULL continues splitting the same string
-    if(NULL != token)
-    {
-        sprintf(CommandContent->SecondArgument, "%s", token);
-    }
-    else
-    {
-       memset(CommandContent->SecondArgument, 0, sizeof(CommandContent->SecondArgument));
+        // If no command is found, clear the Command field.
+        memset(CommandContent->Command, 0, sizeof(CommandContent->Command));
     }
 
-    token = strtok(NULL, delimiter); // Passing NULL continues splitting the same string
-    if(NULL != token)
+    // Loop through to extract and store each argument.
+    for (int argumentIndex = 0; argumentIndex < NO_OF_CMD_ARGUMENTS; ++argumentIndex) 
     {
-        sprintf(CommandContent->ThirdArgument, "%s", token);
-    }
-    else
-    {
-       memset(CommandContent->ThirdArgument, 0, sizeof(CommandContent->ThirdArgument));
+        token = strtok(NULL, DELIMETER); // Continue tokenizing the string for the next argument.
+        if (token != NULL) 
+        {
+            // Copy the current token into the appropriate Arguments field.
+            snprintf(CommandContent->Arguments[argumentIndex], sizeof(CommandContent->Arguments[argumentIndex]), "%s", token);
+        } 
+        else 
+        {
+            // If no token is found, clear the corresponding Arguments field.
+            memset(CommandContent->Arguments[argumentIndex], 0, sizeof(CommandContent->Arguments[argumentIndex]));
+        }
     }
 
-    token = strtok(NULL, delimiter); // Passing NULL continues splitting the same string
-    if(NULL != token)
-    {
-        sprintf(CommandContent->FourthArgument, "%s", token);
-    }
-    else
-    {
-       memset(CommandContent->FourthArgument, 0, sizeof(CommandContent->FourthArgument));
-    }
-		
-    token = strtok(NULL, delimiter); // Passing NULL continues splitting the same string
-    if(NULL != token)
-    {
-        sprintf(CommandContent->FifthArgument, "%s", token);
-    }
-    else
-    {
-       memset(CommandContent->FifthArgument, 0, sizeof(CommandContent->FifthArgument));
-    }
-		return SUCCESS;
+    // If everything was processed successfully, return SUCCESS.
+    return SUCCESS;
 }
 
-/*****************************************************************************************************
-* @brief ParseCommand is used to parse input string and to extract commands and arguments
-*
-* @param *inputString is the input string from UART
-*
-* @param CommandList is a structure of commands and callback functions. input string is compared to 
-*        CommandList[loopCounter].command to determine if it is a valid command
-*
-* @param *delimiter points to the arguments separator
-*
-* @param *ValidationHandler points to ahandler which is used for showing the user command validity.
-*         it is called by reference.
-*
-* @param *ErrorHandler indicates if any of the input pointer is null. it is called by reference.
-*
-* @retval the index of callback function in CommandList[]. it is used for calling the corresponding
-*         callback function
-*/
-uint8_t ParseCommand(char *incommingCommand, struct incommingCommandContents *CommandContent,
-	                   struct CommandEntry* CommandList, const char *delimiter,
-										 CommandValidation_Handler *ValidationHandler,ErrorStatus *ErrorHandler) 
+
+/**
+ * @brief compare_Incomming_CMD_with_CMD_Library
+ *        Compares the input string with a list of predefined commands and extracts the command and arguments.
+ *
+ * @param *incommingCommand Pointer to the input string received from UART.
+ *                          This string contains the command to be parsed and validated.
+ *
+ * @param *CommandContent   Pointer to a structure (`incommingCommandContents`) that stores the parsed command
+ *                          and its arguments. The structure is modified by reference.
+ *
+ * @param *CommandList      Pointer to an array of `CommandEntry` structures. Each element in this array contains
+ *                          a command string and a corresponding callback function. The input command is compared
+ *                          against these entries to validate and identify it.
+ *
+ * @retval struct Parse_CMD_Result
+ *         Returns a structure containing:
+ *         - `callbackFunctionIndex`: Index of the matching command in `CommandList`. This index can be used to
+ *                                    call the corresponding callback function.
+ *         - `cmdValidation`:         Indicates whether the command is valid (`Valid`) or invalid (`Invalid`).
+ *         - `error`:                 Indicates whether any of the input pointers were null (`ERROR` or `SUCCESS`).
+ */
+
+struct Parse_CMD_Result compare_Incomming_CMD_with_CMD_Library(
+                                               char *incommingCommand, 
+                                               struct incommingCommandContents *CommandContent,
+                                               struct CommandEntry* CommandList) 
 {
-    uint8_t loopCounter;
-	  uint8_t CorespondingCallbackIndex;
-	  char *SearchWithinSting;
-    //this enum is used for determine whether the input string is valid or not
-    *ValidationHandler = Invalid;
-	  //check the input pointers
-	  if((*incommingCommand) == NULL ||  CommandContent == NULL || CommandList == NULL || delimiter == NULL)
-		{
-			*ErrorHandler = ERROR;
-		}
-		else
-		{
-			*ErrorHandler = SUCCESS;
-      //scaning input string for a valid command
-      for (loopCounter = 0; loopCounter < NUMBER_OF_DIFFERENT_COMMANDS; ++loopCounter)
-      {
-			    SearchWithinSting = strstr(incommingCommand, CommandList[loopCounter].command);
-          if(SearchWithinSting)
-          {
-            // Tokenize input to extract command and arguments
-            *ErrorHandler = splitingInputString(incommingCommand, CommandContent, delimiter);
-            //valid string was obsereved
-            *ValidationHandler = Valid;
-					  //the value of loopCounter is the index of the call back function coresponding to the user command
-					  CorespondingCallbackIndex = loopCounter;
-            break;
-          }
-				  else
-				  {
-					  *ValidationHandler = Invalid;
-				  }
-       }
-        // return Index
-		}
-    return CorespondingCallbackIndex;
+    uint16_t loopCounter = 0; // Counter for iterating through the command list
+    char *SearchWithinSting = NULL; // Pointer to hold the result of string search
+    struct Parse_CMD_Result outcome; // Result structure to store the parsing outcome
+    outcome.callbackFunctionIndex = 0; // Initialize callback function index to 0
+    
+    // Check if any input pointers are null
+    if (incommingCommand == NULL || CommandContent == NULL || CommandList == NULL)
+    {
+        outcome.error = ERROR; // Set error flag if any pointer is null
+    }
+    else
+    {
+        outcome.error = SUCCESS; // Set success flag if pointers are valid
+        
+        // Calculate the number of commands in the CommandList array
+        uint16_t numberOfCommands = sizeof(CommandList) / sizeof(CommandList[0]);
+        
+        // Scan through the command list to find a matching command
+        for (loopCounter = 0; loopCounter < numberOfCommands; ++loopCounter)
+        {
+            // Search for the current command in the input string
+            SearchWithinSting = strstr(incommingCommand, CommandList[loopCounter].command);
+            
+            if (SearchWithinSting) // If a matching command is found
+            {
+                // Parse the input string to extract command and arguments
+                outcome.error = parseCommandWithArguments(incommingCommand, CommandContent);
+                
+                // Set command validation status to Valid
+                outcome.cmdValidation = Valid;
+                
+                // Store the index of the matching command's callback function
+                outcome.callbackFunctionIndex = loopCounter;
+                
+                break; // Exit the loop since a match was found
+            }
+            else
+            {
+                // Set command validation status to Invalid if no match is found
+                outcome.cmdValidation = Invalid;
+            }
+        }
+    }
+    return outcome; // Return the result structure
 }
+
