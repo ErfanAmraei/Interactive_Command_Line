@@ -9,6 +9,8 @@
 
 #include "HAL-SYSTEM/inc/stm32f10x.h"
 #include "../Headers/UART_Command_Line.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 extern const char* UART_Message[];
 /**
@@ -51,7 +53,7 @@ ErrorStatus SetLedValue(struct incommingCommandContents *CommandContent)
 
 
 
-/**********************************************************************
+/**
 * @brief Callback function to retrieve the heater value based on command.
 *
 * This function validates the input pointer, logs the incoming command, 
@@ -90,130 +92,202 @@ ErrorStatus GetHeaterValue(struct incommingCommandContents *CommandContent)
     return outcome;
 }
 
-
 /**
-* @brief parseCommandWithArguments is used to tokenize the input string to extract a command and its arguments.
-*
-* This function splits an input string into a command and up to NO_OF_CMD_ARGUMENTS arguments using 
-* a specified delimiter. The results are stored in the incommingCommandContents structure.
-*
-* @param *incommingCommand: Pointer to the input string received (e.g., from UART).
-* @param *CommandContent: Pointer to the structure where the command and arguments will be stored.
-*
-* @retval ErrorStatus: Returns SUCCESS if operation is successful, or ERROR if any input pointer is NULL.
-*/
-ErrorStatus parseCommandWithArguments(char *incommingCommand, struct incommingCommandContents *CommandContent) {
+ * @brief Function to extract a value from an XML string between specific tags
+ * 
+ * @param xml: Pointer to the XML string
+ * @param tag: Pointer to the tag name whose value needs to be extracted
+ * @param tag_value: Pointer to a buffer where the extracted value will be stored
+ * @param value_size: Size of the buffer for tag_value
+ * 
+ * @retval XML_Parser_Status_t: Status of the extraction (e.g., success or error)
+ */
+XML_Parser_Status_t extract_value_from_xml(const char *xml, 
+                                           const char *tag, 
+                                           char *tag_value, 
+                                           size_t value_size) 
+{
+    // Initialize the return value to XML_OK (success)
+    XML_Parser_Status_t outcome = XML_OK;
 
-    // Check if any of the input pointers are NULL. Return ERROR if any is invalid.
-    if (incommingCommand == NULL || CommandContent == NULL) 
-    {
-        return ERROR;
-    }
+    // Pointers to store the opening and closing tags
+    char *open_tag = NULL;
+    char *close_tag = NULL;
+    // Pointers to mark the start and end of the tag value in the XML string
+    char *start = NULL;
+    char *end = NULL;
+    // Variable to store the length of the extracted tag value
+    size_t tag_length = 0;
 
-    // Tokenize the input string to extract the command (first token).
-    char *token = strtok(incommingCommand, DELIMETER);
-    if (token != NULL) 
+    // Memory allocation size for open_tag and close_tag
+    uint8_t memory_size = 32;
+    
+    // Check if input parameters are valid
+    if (!xml || !tag || !tag_value || value_size == 0) 
     {
-        // Copy the command into the Command field of the structure.
-        snprintf(CommandContent->Command, sizeof(CommandContent->Command), "%s", token);
+        outcome = EMPTY_PARAMS; // Set outcome to error status for empty parameters
     } 
     else 
     {
-        // If no command is found, clear the Command field.
-        memset(CommandContent->Command, 0, sizeof(CommandContent->Command));
-    }
+        // Allocate memory for opening and closing tags
+        open_tag = (char *)malloc(memory_size);
+        close_tag = (char *)malloc(memory_size);
 
-    // Loop through to extract and store each argument.
-    for (int argumentIndex = 0; argumentIndex < NO_OF_CMD_ARGUMENTS; ++argumentIndex) 
-    {
-        token = strtok(NULL, DELIMETER); // Continue tokenizing the string for the next argument.
-        if (token != NULL) 
+        // Check if memory allocation was successful
+        if (open_tag && close_tag) 
         {
-            // Copy the current token into the appropriate Arguments field.
-            snprintf(CommandContent->Arguments[argumentIndex], sizeof(CommandContent->Arguments[argumentIndex]), "%s", token);
+            // Format the opening and closing tags
+            snprintf(open_tag, memory_size, "<%s>", tag);
+            snprintf(close_tag, memory_size, "</%s>", tag);
+
+            // Find the opening tag in the XML string
+            start = strstr(xml, open_tag);
+            // Find the closing tag in the XML string
+            end = strstr(start, close_tag);
+            
+            // Ensure both tags are found
+            if (start && end) 
+            {
+                start += strlen(open_tag); // Move the pointer to the start of the value
+                tag_length = end - start;  // Calculate the length of the value
+
+                // Check if the extracted value fits in the provided buffer
+                if (tag_length >= value_size) 
+                {
+                    outcome = BAD_XML; // Set outcome to error status if value is too large
+                } 
+                else 
+                {
+                    // Copy the extracted value into the provided buffer
+                    strncpy(tag_value, start, tag_length);
+                    tag_value[tag_length] = '\0'; // Null-terminate the string
+                    outcome = XML_OK; // Set outcome to success
+                }
+            } 
+            else 
+            {
+                outcome = BAD_XML; // Set outcome to error if tags are not found
+            }
+            // Free the allocated memory for tags
+            free(open_tag);
+            free(close_tag);
         } 
         else 
         {
-            // If no token is found, clear the corresponding Arguments field.
-            memset(CommandContent->Arguments[argumentIndex], 0, sizeof(CommandContent->Arguments[argumentIndex]));
+            outcome = BAD_XML; // Set outcome to error if memory allocation fails
         }
     }
-
-    // If everything was processed successfully, return SUCCESS.
-    return SUCCESS;
+    // Return the outcome of the operation
+    return outcome;
 }
 
-
 /**
- * @brief compare_Incomming_CMD_with_CMD_Library
- *        Compares the input string with a list of predefined commands and extracts the command and arguments.
+ * @brief Looks for the specified command in the global command list.
  *
- * @param *incommingCommand Pointer to the input string received from UART.
- *                          This string contains the command to be parsed and validated.
+ * This function searches through the global command list to find a matching
+ * command. If the command is found, it returns its index; otherwise, it 
+ * returns INVALID_CALLBACK_FUNCTION.
  *
- * @param *CommandContent   Pointer to a structure (`incommingCommandContents`) that stores the parsed command
- *                          and its arguments. The structure is modified by reference.
- *
- * @param *CommandList      Pointer to an array of `CommandEntry` structures. Each element in this array contains
- *                          a command string and a corresponding callback function. The input command is compared
- *                          against these entries to validate and identify it.
- *
- * @retval struct Parse_CMD_Result
- *         Returns a structure containing:
- *         - `callbackFunctionIndex`: Index of the matching command in `CommandList`. This index can be used to
- *                                    call the corresponding callback function.
- *         - `cmdValidation`:         Indicates whether the command is valid (`Valid`) or invalid (`Invalid`).
- *         - `error`:                 Indicates whether any of the input pointers were null (`ERROR` or `SUCCESS`).
+ * @param cmd Pointer to the command string to search for.
+ * @return uint8_t Index of the found command or INVALID_CALLBACK_FUNCTION if not found.
  */
-
-struct Parse_CMD_Result compare_Incomming_CMD_with_CMD_Library(
-                                               char *incommingCommand, 
-                                               struct incommingCommandContents *CommandContent,
-                                               struct CommandEntry* CommandList) 
+uint8_t find_command_in_list(const char* cmd)
 {
-    uint16_t loopCounter = 0; // Counter for iterating through the command list
-    char *SearchWithinSting = NULL; // Pointer to hold the result of string search
-    struct Parse_CMD_Result outcome; // Result structure to store the parsing outcome
-    outcome.callbackFunctionIndex = 0; // Initialize callback function index to 0
+    bool    operation_outcome = false;  //tracks whether the command was found.
+    uint8_t cmd_list_index = 0;         //index for iterating through the command list.
     
-    // Check if any input pointers are null
-    if (incommingCommand == NULL || CommandContent == NULL || CommandList == NULL)
+    //check if both input command and global command list are valid.
+    if (cmd && g_cmd_list)
     {
-        outcome.error = ERROR; // Set error flag if any pointer is null
-    }
-    else
-    {
-        outcome.error = SUCCESS; // Set success flag if pointers are valid
-        
-        // Calculate the number of commands in the CommandList array
-        uint16_t numberOfCommands = sizeof(CommandList) / sizeof(CommandList[0]);
-        
-        // Scan through the command list to find a matching command
-        for (loopCounter = 0; loopCounter < numberOfCommands; ++loopCounter)
+        //iterate through the command list until the end (null command).
+        while (g_cmd_list[cmd_list_index].cmd)
         {
-            // Search for the current command in the input string
-            SearchWithinSting = strstr(incommingCommand, CommandList[loopCounter].command);
-            
-            if (SearchWithinSting) // If a matching command is found
+            //compare the current command in the list with the input command.
+            if (strcmp(g_cmd_list[cmd_list_index].cmd, cmd) == 0)
             {
-                // Parse the input string to extract command and arguments
-                outcome.error = parseCommandWithArguments(incommingCommand, CommandContent);
-                
-                // Set command validation status to Valid
-                outcome.cmdValidation = Valid;
-                
-                // Store the index of the matching command's callback function
-                outcome.callbackFunctionIndex = loopCounter;
-                
-                break; // Exit the loop since a match was found
+                operation_outcome = true;  //mark that the command is found.
+                break;                     //exit the loop as the command is found.
             }
-            else
-            {
-                // Set command validation status to Invalid if no match is found
-                outcome.cmdValidation = Invalid;
-            }
+            ++cmd_list_index;  //move to the next command in the list.
+        }
+        
+        //if the command was not found, set index to INVALID_CALLBACK_FUNCTION.
+        if (!operation_outcome)
+        {
+            cmd_list_index = INVALID_CALLBACK_FUNCTION;
         }
     }
-    return outcome; // Return the result structure
+    // If either the input command or command list is invalid, return INVALID_CALLBACK_FUNCTION.
+    else
+    {
+        cmd_list_index = INVALID_CALLBACK_FUNCTION;
+    }
+    
+    return cmd_list_index;  //return the index of the command or INVALID_CALLBACK_FUNCTION.
+}
+
+/**
+ * @brief Extracts a command and its parameter from an input XML string.
+ *
+ * This function processes an XML string to extract the value of the `CMD` tag 
+ * and its associated parameter. It returns a structure containing the command, 
+ * its parameter, and the index of the corresponding callback function.
+ *
+ * @param xml Pointer to the input XML string.
+ * @return struct XMLDataExtractionResult A structure containing:
+ *         - `cmd`: The extracted command.
+ *         - `param`: The extracted parameter.
+ *         - `callback_index`: Index of the callback function, or an error code if unsuccessful.
+ */
+struct XMLDataExtractionResult extract_command_and_params_from_xml(const char *xml)
+{
+    struct XMLDataExtractionResult outcome; //stores the results of XML parsing.
+    
+    uint8_t cmd_index = 0;                  //index to track commands in the list.
+    XML_Parser_Status_t parser_status = XML_OK; //status of XML parsing operations.
+
+    char* tag_value = NULL;     //pointer to temporarily store extracted tag values.
+    size_t memory_size = 32;    //initial memory size for tag value storage.
+
+    memory_size *= sizeof(char);  //adjust memory size based on character size.
+    
+    //check if the input XML string is valid.
+    if (xml)
+    {
+        //extract the command from the `CMD` tag in the XML string.
+        parser_status = extract_value_from_xml(xml, XML_TAG_CMD, outcome.cmd, memory_size);
+
+        //check if the command was successfully extracted.
+        if (parser_status == XML_OK)
+        {
+            //search for the extracted command in the command list and get its callback index.
+            outcome.callback_index = find_command_in_list(outcome.cmd);
+            
+            //validate that the callback index is valid.
+            if (outcome.callback_index < INVALID_OPERATION)
+            {
+                //extract the parameter from the `PARAMETER` tag and store it in `outcome.param`.
+                parser_status = extract_value_from_xml(xml, XML_TAG_PARAMETER, outcome.param, memory_size);
+                
+                //if parameter extraction fails, mark the callback index as invalid.
+                if (parser_status != XML_OK)
+                {
+                    outcome.callback_index = INVALID_CALLBACK_FUNCTION;
+                }
+            }  
+        }
+        //if the `CMD` tag is missing or invalid, mark the callback index as invalid.
+        else
+        {
+            outcome.callback_index = INVALID_CALLBACK_FUNCTION;
+        }   
+    }
+    //if the input XML is null, mark the operation as invalid.
+    else
+    {
+        outcome.callback_index = INVALID_OPERATION;
+    }
+
+    return outcome; // Return the result structure containing the command, parameter, and callback index.
 }
 

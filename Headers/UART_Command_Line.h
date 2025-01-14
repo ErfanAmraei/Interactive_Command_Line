@@ -4,24 +4,12 @@
 #include <string.h>
 #include <stdbool.h>
 
-//specifies the maximum length of every individual argument
-#define ARGUMENT_LENGTH                (uint8_t) 3
-//specifies the number of arguments
-#define NO_OF_CMD_ARGUMENTS            (uint8_t) 5
-//specifies the maximum length of user string buffer	
-#define MAX_USER_COMMAND_LENGTH        (uint8_t) 40 
-//hex code of ")"
-#define PRANTHESIS_HEX_CODE            (uint8_t) 0x29
-//specifies the string delimeter
-#define DELIMETER                      (char*)";"
+#define XML_PARENT_TAG       (char *)"UCL"
+#define XML_TAG_CMD          (char *)"CMD"
+#define XML_TAG_PARAMETER    (char *)"PARAM"
 
-//incommingCommandContents is used to save different parts of the input string
-struct incommingCommandContents
-{
-   char *Command;
-   char Arguments[NO_OF_CMD_ARGUMENTS][ARGUMENT_LENGTH];
-};
-
+#define INVALID_CALLBACK_FUNCTION  (uint8_t)0xFF
+#define INVALID_OPERATION          (uint8_t)0xFE
 
 /**
  * @brief Enum to define the indexes of the UART_Message array
@@ -50,8 +38,17 @@ const char* UART_Message[] =
    "\nFirst Command: %s\n",
    "\nSecond Command: %s\n",
    NULL //proper termination for an array of pointers
-}
+};
 
+/**
+ * @brief Structure to hold the result of extracting data from an XML message.
+ */
+struct XMLDataExtractionResult
+{
+   uint8_t callback_index; /*index of the callback function to handle the command. */
+   char *cmd;              /*pointer to the extracted XML command as a null-terminated string.*/
+   char *param;            /*pointer to the extracted XML command parameter as a null-terminated string.*/
+};
 
 /**
 * @brief defining a function pointer type named CommandCallback
@@ -68,7 +65,7 @@ typedef ErrorStatus (*CommandCallback)(struct incommingCommandContents *CommandC
 */
 struct CommandEntry
 {
-    const char *command;
+    const char *cmd;
     CommandCallback callback;
 };
 
@@ -93,6 +90,19 @@ typedef enum
 }incommingCommandBufferStatus;
 
 /**
+ * @enum XML_Parser_Status_t
+ * @brief Defines the possible outcomes of the XML parsing function.
+ */
+typedef enum 
+{
+   XML_OK = 0,        // Indicates that the XML parsing was successful
+   BAD_XML,           // Indicates that the XML string is invalid, or the expected tags were not found
+   NO_CMD,            // Indicates that the incomming command has not been found in the command list
+   EMPTY_PARAMS       // Indicates that one or more input parameters are null or invalid
+} XML_Parser_Status_t;
+
+
+/**
  * @brief Parse_CMD_Result is used as the output of the compare_Incomming_CMD_with_CMD_Library
  */
 struct Parse_CMD_Result
@@ -106,11 +116,21 @@ struct Parse_CMD_Result
 ErrorStatus SetLedValue(struct incommingCommandContents *CommandContent);
 //GetHeaterValue
 ErrorStatus GetHeaterValue(struct incommingCommandContents *CommandContent);
-//parseCommandWithArguments prototype
-ErrorStatus parseCommandWithArguments(char *incommingCommand, struct incommingCommandContents *CommandContent);
-//compare_Incomming_CMD_with_CMD_Library prototype
-struct Parse_CMD_Result compare_Incomming_CMD_with_CMD_Library(
-                                                               char *incommingCommand, 
-                                                               struct incommingCommandContents *CommandContent,
-                                                               struct CommandEntry* CommandList);
+
+XML_Parser_Status_t extract_value_from_xml(const char *xml, 
+                                           const char *tag, 
+                                           char *tag_value, 
+                                           size_t value_size);
+
+uint8_t find_command_in_list(const char* cmd);
+
+struct XMLDataExtractionResult extract_command_and_params_from_xml(const char *xml);
+
+
+struct CommandEntry g_cmd_list[] = 
+{
+   {"LightOn", SetLedValue},
+   {"GetHeater", GetHeaterValue},
+   {NULL, NULL}
+};
 
