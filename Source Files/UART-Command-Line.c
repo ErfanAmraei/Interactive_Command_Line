@@ -20,12 +20,12 @@ extern const char* UART_Message[];
 * and processes it to set the appropriate LED value. It returns an 
 * error status indicating success or failure.
 *
-* @param [in] *CommandContent Pointer to the incomingCommandContents structure.
+* @param [in] *CommandContent Pointer to the XMLDataExtractionResult structure.
 *
 * @retval SUCCESS if the command is successfully processed.
 * @retval ERROR if the input pointer is null or processing fails.
 */
-ErrorStatus SetLedValue(struct incommingCommandContents *CommandContent) 
+ErrorStatus SetLedValue(const struct XMLDataExtractionResult *CommandContent) 
 {
     // Initialize outcome as ERROR to handle potential failures.
     ErrorStatus outcome = ERROR;
@@ -38,7 +38,7 @@ ErrorStatus SetLedValue(struct incommingCommandContents *CommandContent)
     else
     {
       // Log the first command from the incoming structure.
-      printf(UART_Message[(uint8_t)FIRST_CMD], CommandContent->Command);
+      printf(UART_Message[(uint8_t)FIRST_CMD], CommandContent->cmd);
       
       // Indicate that the command was received and processed.
       printf(UART_Message[(uint8_t)CMD_PROCESSED]);
@@ -60,12 +60,12 @@ ErrorStatus SetLedValue(struct incommingCommandContents *CommandContent)
 * and processes it to retrieve the heater value. It returns an error 
 * status indicating success or failure.
 *
-* @param [in] *CommandContent Pointer to the incomingCommandContents structure.
+* @param [in] *CommandContent Pointer to the XMLDataExtractionResult structure.
 *
 * @retval SUCCESS if the command is successfully processed.
 * @retval ERROR if the input pointer is null or processing fails.
 */
-ErrorStatus GetHeaterValue(struct incommingCommandContents *CommandContent) 
+ErrorStatus GetHeaterValue(const struct XMLDataExtractionResult *CommandContent) 
 {
     // Initialize outcome as ERROR to handle failure cases.
     ErrorStatus outcome = ERROR;
@@ -79,7 +79,7 @@ ErrorStatus GetHeaterValue(struct incommingCommandContents *CommandContent)
     else 
     {
         // Log the second command from the incoming structure.
-        printf(UART_Message[(uint8_t)SECOND_CMD], CommandContent->Command);
+        printf(UART_Message[(uint8_t)SECOND_CMD], CommandContent->cmd);
         
         // Indicate that the command was received and processed.
         printf(UART_Message[(uint8_t)CMD_PROCESSED]);
@@ -125,7 +125,7 @@ XML_Parser_Status_t extract_value_from_xml(const char *xml,
     // Check if input parameters are valid
     if (!xml || !tag || !tag_value || value_size == 0) 
     {
-        outcome = EMPTY_PARAMS; // Set outcome to error status for empty parameters
+        outcome = INVALID_OPERATION; // Set outcome to error status for invalid operation
     } 
     else 
     {
@@ -186,10 +186,10 @@ XML_Parser_Status_t extract_value_from_xml(const char *xml,
  *
  * This function searches through the global command list to find a matching
  * command. If the command is found, it returns its index; otherwise, it 
- * returns INVALID_CALLBACK_FUNCTION.
+ * returns NO_COMMAND_FOUND.
  *
  * @param cmd Pointer to the command string to search for.
- * @return uint8_t Index of the found command or INVALID_CALLBACK_FUNCTION if not found.
+ * @return uint8_t Index of the found command or NO_COMMAND_FOUND if not found.
  */
 uint8_t find_command_in_list(const char* cmd)
 {
@@ -211,19 +211,19 @@ uint8_t find_command_in_list(const char* cmd)
             ++cmd_list_index;  //move to the next command in the list.
         }
         
-        //if the command was not found, set index to INVALID_CALLBACK_FUNCTION.
+        //if the command was not found, set index to NO_COMMAND_FOUND.
         if (!operation_outcome)
         {
-            cmd_list_index = INVALID_CALLBACK_FUNCTION;
+            cmd_list_index = (uint8_t) NO_COMMAND_FOUND;
         }
     }
-    // If either the input command or command list is invalid, return INVALID_CALLBACK_FUNCTION.
+    // If either the input command or command list is invalid, return NO_COMMAND_FOUND.
     else
     {
-        cmd_list_index = INVALID_CALLBACK_FUNCTION;
+        cmd_list_index = (uint8_t) INVALID_OPERATION;
     }
     
-    return cmd_list_index;  //return the index of the command or INVALID_CALLBACK_FUNCTION.
+    return cmd_list_index;  //return the index of the command or NO_COMMAND_FOUND.
 }
 
 /**
@@ -264,7 +264,7 @@ struct XMLDataExtractionResult extract_command_and_params_from_xml(const char *x
             outcome.callback_index = find_command_in_list(outcome.cmd);
             
             //validate that the callback index is valid.
-            if (outcome.callback_index < INVALID_OPERATION)
+            if (outcome.callback_index < (uint8_t) NO_COMMAND_FOUND)
             {
                 //extract the parameter from the `PARAMETER` tag and store it in `outcome.param`.
                 parser_status = extract_value_from_xml(xml, XML_TAG_PARAMETER, outcome.param, memory_size);
@@ -272,22 +272,42 @@ struct XMLDataExtractionResult extract_command_and_params_from_xml(const char *x
                 //if parameter extraction fails, mark the callback index as invalid.
                 if (parser_status != XML_OK)
                 {
-                    outcome.callback_index = INVALID_CALLBACK_FUNCTION;
+                    outcome.callback_index = (uint8_t) parser_status;
                 }
-            }  
+            } 
         }
         //if the `CMD` tag is missing or invalid, mark the callback index as invalid.
         else
         {
-            outcome.callback_index = INVALID_CALLBACK_FUNCTION;
+            outcome.callback_index = (uint8_t) parser_status;
         }   
     }
     //if the input XML is null, mark the operation as invalid.
     else
     {
-        outcome.callback_index = INVALID_OPERATION;
+        outcome.callback_index = (uint8_t) INVALID_OPERATION;
     }
 
     return outcome; // Return the result structure containing the command, parameter, and callback index.
+}
+
+void execute_callback_functions(const struct XMLDataExtractionResult *commandContent)
+{
+    uint8_t index = 0;
+
+    if(!commandContent)
+    {
+        index = (uint8_t) INVALID_OPERATION - (uint8_t) NO_COMMAND_FOUND;
+        printf(XML_Proccessing_Messages[index])
+    }
+    else if(commandContent->callback_index > (uint8_t) XML_OK)
+    {
+        index = commandContent->callback_index - (uint8_t) NO_COMMAND_FOUND;
+        printf(XML_Proccessing_Messages[index]);
+    }
+    else
+    {
+        g_cmd_list[commandContent->callback_index].callback(commandContent);
+    }
 }
 

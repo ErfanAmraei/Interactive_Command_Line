@@ -8,18 +8,12 @@
 #define XML_TAG_CMD          (char *)"CMD"
 #define XML_TAG_PARAMETER    (char *)"PARAM"
 
-#define INVALID_CALLBACK_FUNCTION  (uint8_t)0xFF
-#define INVALID_OPERATION          (uint8_t)0xFE
-
 /**
  * @brief Enum to define the indexes of the UART_Message array
 */
 typedef enum {
     ERR_NULL_POINTER,     // Index 0: "Error: CommandContent pointer is null.\n"
     CMD_PROCESSED,        // Index 1: "Command received and processed.\n"
-    ERR_CALLBACK,         // Index 2: "\nError happened in callback functions\n"
-    ERR_INVALID_COMMAND,  // Index 3: "\nInvalid command. You are not allowed to send such commands\n"
-    ERR_PARSING_COMMAND,  // Index 4: "\nError happened when parsing user command\n"
     FIRST_CMD,            // Index 5: "\nFirst Command: %s\n"
     SECOND_CMD,           // Index 6: "\nSecond Command: %s\n"
     UART_MESSAGES_COUNT   // Total number of messages (useful for iteration)
@@ -32,9 +26,6 @@ const char* UART_Message[] =
 {
    "Error: CommandContent pointer is null.\n",
    "Command received and processed.\n",
-   "\nError happend in callback functions\n",
-   "\nInvalid command. you are not allowed to send such commands\n",
-   "\nError happend when parsing user command\n",
    "\nFirst Command: %s\n",
    "\nSecond Command: %s\n",
    NULL //proper termination for an array of pointers
@@ -57,7 +48,7 @@ struct XMLDataExtractionResult
 *
 * @retval none.
 */
-typedef ErrorStatus (*CommandCallback)(struct incommingCommandContents *CommandContent);
+typedef ErrorStatus (*CommandCallback)(struct XMLDataExtractionResult *CommandContent);
 
 
 /**
@@ -89,16 +80,25 @@ typedef enum
    Full  = !Empty,
 }incommingCommandBufferStatus;
 
+
+const char* XML_Proccessing_Messages[] = 
+{
+   "\nNo command was found\n",
+   "\nInvalid operation\n",
+   "\nBad XML\n"
+};
+
 /**
  * @enum XML_Parser_Status_t
  * @brief Defines the possible outcomes of the XML parsing function.
  */
 typedef enum 
 {
-   XML_OK = 0,        // Indicates that the XML parsing was successful
-   BAD_XML,           // Indicates that the XML string is invalid, or the expected tags were not found
-   NO_CMD,            // Indicates that the incomming command has not been found in the command list
-   EMPTY_PARAMS       // Indicates that one or more input parameters are null or invalid
+   XML_OK = 0xFA,           //indicates that the XML parsing was successful
+   NO_COMMAND_FOUND = 0xFB,
+   INVALID_OPERATION = 0xFC,
+   BAD_XML = 0xFD,          //indicates that the XML string is invalid, or the expected tags were not found
+   NO_OF_PARSER_MESSAGES = 0xFF
 } XML_Parser_Status_t;
 
 
@@ -113,9 +113,9 @@ struct Parse_CMD_Result
 };
 
 //SetLedValue prototype
-ErrorStatus SetLedValue(struct incommingCommandContents *CommandContent);
+ErrorStatus SetLedValue(const struct XMLDataExtractionResult *CommandContent);
 //GetHeaterValue
-ErrorStatus GetHeaterValue(struct incommingCommandContents *CommandContent);
+ErrorStatus GetHeaterValue(const struct XMLDataExtractionResult *CommandContent);
 
 XML_Parser_Status_t extract_value_from_xml(const char *xml, 
                                            const char *tag, 
