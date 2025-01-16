@@ -11,6 +11,10 @@
 #define XML_TAG_CMD          (char *)"CMD"
 #define XML_TAG_PARAMETER    (char *)"PARAM"
 
+#define CMD_AND_PARAM_LENGTH           (uint8_t) 32 //command and parameter can be maximum 32 bytes long
+
+#define NEWLINE_ASCII   (char) 10  // ASCII value for newline character
+
 /**
  * @brief Enum to define the indexes of the UART_Message array
 */
@@ -27,9 +31,9 @@ typedef enum {
  */
 struct XMLDataExtractionResult
 {
-   uint8_t callback_index; /*index of the callback function to handle the command. */
-   char *cmd;              /*pointer to the extracted XML command as a null-terminated string.*/
-   char *param;            /*pointer to the extracted XML command parameter as a null-terminated string.*/
+   uint8_t callback_index;            /*index of the callback function to handle the command. */
+   char cmd[CMD_AND_PARAM_LENGTH];    /*pointer to the extracted XML command as a null-terminated string.*/
+   char param[CMD_AND_PARAM_LENGTH];  /*pointer to the extracted XML command parameter as a null-terminated string.*/
 };
 
 /**

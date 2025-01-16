@@ -15,7 +15,7 @@
 /**
  array of UART message strings used for logging and debugging purposes.
 */
-const char* UART_Message[] = 
+static const char* UART_Message[] = 
 {
    "Error: CommandContent pointer is null.\n",
    "Command received and processed.\n",
@@ -28,7 +28,7 @@ const char* UART_Message[] =
  Each string corresponds to a specific XML parsing status, providing 
  human-readable error or status messages. The array ends with a NULL 
  pointer to indicate the end of the list.*/
-const char* XML_Proccessing_Messages[] = 
+static const char* XML_Proccessing_Messages[] = 
 {
     "\nNo command was found\n",  //message for when no valid command is detected in the XML
     "\nInvalid operation\n",     //message for an unsupported or invalid operation in the XML
@@ -40,7 +40,7 @@ const char* XML_Proccessing_Messages[] =
 /*define a global array of CommandEntry structures, where each entry associates a command string 
  with a corresponding handler function. The array ends with a sentinel entry {NULL, NULL} to 
  indicate the end of the command list.*/
-const struct CommandEntry g_cmd_list[] = 
+static const struct CommandEntry g_cmd_list[] = 
 {
     {"LightOn", SetLedValue},   //command "LightOn" is handled by the SetLedValue function
     {"GetHeater", GetHeaterValue}, //command "GetHeater" is handled by the GetHeaterValue function
@@ -155,7 +155,7 @@ XML_Parser_Status_t extract_value_from_xml(const char *xml,
     size_t tag_length = 0;
 
     // Memory allocation size for open_tag and close_tag
-    uint8_t memory_size = 32;
+    size_t memory_size = 32;
     
     // Check if input parameters are valid
     if (!xml || !tag || !tag_value || value_size == 0) 
@@ -165,8 +165,8 @@ XML_Parser_Status_t extract_value_from_xml(const char *xml,
     else 
     {
         // Allocate memory for opening and closing tags
-        open_tag = (char *)malloc(memory_size);
-        close_tag = (char *)malloc(memory_size);
+        open_tag = (char *)malloc(memory_size * sizeof(char));
+        close_tag = (char *)malloc(memory_size * sizeof(char));
 
         // Check if memory allocation was successful
         if (open_tag && close_tag) 
@@ -282,9 +282,9 @@ struct XMLDataExtractionResult extract_command_and_params_from_xml(const char *x
     XML_Parser_Status_t parser_status = XML_OK; //status of XML parsing operations.
 
     char* tag_value = NULL;     //pointer to temporarily store extracted tag values.
-    size_t memory_size = 32;    //initial memory size for tag value storage.
+    size_t memory_size = 0;    //initial memory size for tag value storage.
 
-    memory_size *= sizeof(char);  //adjust memory size based on character size.
+    memory_size = CMD_AND_PARAM_LENGTH * sizeof(char);  //adjust memory size based on character size.
     
     //check if the input XML string is valid.
     if (xml)

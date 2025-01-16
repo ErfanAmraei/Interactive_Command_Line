@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "hal_common.h": "c",
-        "stm32f10x.h": "c"
+        "stm32f10x.h": "c",
+        "uart_command_line.h": "c"
     }
 }
