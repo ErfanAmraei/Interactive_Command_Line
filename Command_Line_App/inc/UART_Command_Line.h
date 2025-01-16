@@ -1,3 +1,6 @@
+#ifndef UCL_H
+#define UCL_H
+
 #include "stm32f10x.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -20,18 +23,6 @@ typedef enum {
 } UART_MessageIndex;
 
 /**
-/* @brief array of UART message strings used for logging and debugging purposes.
-*/
-const char* UART_Message[] = 
-{
-   "Error: CommandContent pointer is null.\n",
-   "Command received and processed.\n",
-   "\nFirst Command: %s\n",
-   "\nSecond Command: %s\n",
-   NULL //proper termination for an array of pointers
-};
-
-/**
  * @brief Structure to hold the result of extracting data from an XML message.
  */
 struct XMLDataExtractionResult
@@ -50,7 +41,6 @@ struct XMLDataExtractionResult
 */
 typedef ErrorStatus (*CommandCallback)(struct XMLDataExtractionResult *CommandContent);
 
-
 /**
 * @brief CommandEntry is used to configure input commands and callback functions
 */
@@ -60,77 +50,31 @@ struct CommandEntry
     CommandCallback callback;
 };
 
-
-/**
- * @brief CommandValidation_Handler is used to show the validity of input string
-*/
-typedef enum 
-{
-  Invalid = 0,
-	Valid   = !Invalid,
-}CommandValidation_Handler;
-
-/**
- * @brief incommingCommandBufferStatus is used to show that the user string from UART is
- *        is full or empty
-*/
-typedef enum 
-{
-   Empty = 0,
-   Full  = !Empty,
-}incommingCommandBufferStatus;
-
-
-const char* XML_Proccessing_Messages[] = 
-{
-   "\nNo command was found\n",
-   "\nInvalid operation\n",
-   "\nBad XML\n"
-};
-
 /**
  * @enum XML_Parser_Status_t
  * @brief Defines the possible outcomes of the XML parsing function.
  */
 typedef enum 
 {
-   XML_OK = 0xFA,           //indicates that the XML parsing was successful
-   NO_COMMAND_FOUND = 0xFB,
-   INVALID_OPERATION = 0xFC,
-   BAD_XML = 0xFD,          //indicates that the XML string is invalid, or the expected tags were not found
-   NO_OF_PARSER_MESSAGES = 0xFF
+   XML_OK = 0xFA,              // Indicates that the XML parsing was successful
+   NO_COMMAND_FOUND = 0xFB,    // Indicates that no valid command was found in the XML
+   INVALID_OPERATION = 0xFC,   // Indicates that an invalid operation or unsupported command was encountered
+   BAD_XML = 0xFD,             // Indicates that the XML string is malformed or the expected tags were missing
+   NO_OF_PARSER_MESSAGES = 0xFF // Represents the total number of parser status messages; used as a limit or marker
 } XML_Parser_Status_t;
-
-
-/**
- * @brief Parse_CMD_Result is used as the output of the compare_Incomming_CMD_with_CMD_Library
- */
-struct Parse_CMD_Result
-{
-   ErrorStatus error;
-   CommandValidation_Handler cmdValidation;
-   uint8_t callbackFunctionIndex;
-};
 
 //SetLedValue prototype
 ErrorStatus SetLedValue(const struct XMLDataExtractionResult *CommandContent);
 //GetHeaterValue
 ErrorStatus GetHeaterValue(const struct XMLDataExtractionResult *CommandContent);
 
-XML_Parser_Status_t extract_value_from_xml(const char *xml, 
-                                           const char *tag, 
-                                           char *tag_value, 
-                                           size_t value_size);
+XML_Parser_Status_t extract_value_from_xml(const char *xml, const char *tag, 
+                                           char *tag_value, size_t value_size);
 
 uint8_t find_command_in_list(const char* cmd);
 
 struct XMLDataExtractionResult extract_command_and_params_from_xml(const char *xml);
 
+void execute_callback_functions(const struct XMLDataExtractionResult *commandContent);
 
-struct CommandEntry g_cmd_list[] = 
-{
-   {"LightOn", SetLedValue},
-   {"GetHeater", GetHeaterValue},
-   {NULL, NULL}
-};
-
+#endif //End of UCL_H

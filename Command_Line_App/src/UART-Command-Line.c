@@ -8,11 +8,46 @@
   ******************************************************************************/
 
 #include "HAL-SYSTEM/inc/stm32f10x.h"
-#include "../Headers/UART_Command_Line.h"
+#include "../inc/UART_Command_Line.h"
 #include <stdlib.h>
 #include <stdio.h>
 
-extern const char* UART_Message[];
+/**
+ array of UART message strings used for logging and debugging purposes.
+*/
+const char* UART_Message[] = 
+{
+   "Error: CommandContent pointer is null.\n",
+   "Command received and processed.\n",
+   "\nFirst Command: %s\n",
+   "\nSecond Command: %s\n",
+   NULL //proper termination for an array of pointers
+};
+
+/*Array of strings representing various XML processing messages. 
+ Each string corresponds to a specific XML parsing status, providing 
+ human-readable error or status messages. The array ends with a NULL 
+ pointer to indicate the end of the list.*/
+const char* XML_Proccessing_Messages[] = 
+{
+    "\nNo command was found\n",  //message for when no valid command is detected in the XML
+    "\nInvalid operation\n",     //message for an unsupported or invalid operation in the XML
+    "\nBad XML\n",               //message for malformed or incorrect XML format
+    NULL                         //sentinel value marking the end of the array
+};
+
+
+/*define a global array of CommandEntry structures, where each entry associates a command string 
+ with a corresponding handler function. The array ends with a sentinel entry {NULL, NULL} to 
+ indicate the end of the command list.*/
+const struct CommandEntry g_cmd_list[] = 
+{
+    {"LightOn", SetLedValue},   //command "LightOn" is handled by the SetLedValue function
+    {"GetHeater", GetHeaterValue}, //command "GetHeater" is handled by the GetHeaterValue function
+    {NULL, NULL}               //Sentinel entry marking the end of the command list
+};
+
+
 /**
 * @brief Callback function to process and set LED value based on command.
 *
@@ -291,23 +326,45 @@ struct XMLDataExtractionResult extract_command_and_params_from_xml(const char *x
     return outcome; // Return the result structure containing the command, parameter, and callback index.
 }
 
+/**
+ * @brief Executes the appropriate callback function or prints an error message 
+ *        based on the result of XML data extraction.
+ * 
+ * @param commandContent Pointer to an XMLDataExtractionResult structure containing 
+ *                       the extracted command and callback index.
+ * 
+ * This function determines whether to call a callback function from the global 
+ * command list (g_cmd_list) or print an error message based on the contents 
+ * of the commandContent structure.
+ */
 void execute_callback_functions(const struct XMLDataExtractionResult *commandContent)
 {
-    uint8_t index = 0;
+    uint8_t index = 0; // Initialize index to store the calculated error message index or callback index
 
-    if(!commandContent)
+    // Check if the commandContent pointer is NULL
+    if (!commandContent)
     {
+        // Calculate the index for the "Invalid operation" error message
         index = (uint8_t) INVALID_OPERATION - (uint8_t) NO_COMMAND_FOUND;
-        printf(XML_Proccessing_Messages[index])
+        
+        // Print the corresponding error message to the UART port
+        printf(XML_Proccessing_Messages[index]);
     }
-    else if(commandContent->callback_index > (uint8_t) XML_OK)
+    // Check if the callback index is greater than the maximum valid callback index
+    else if (commandContent->callback_index > (uint8_t) XML_OK)
     {
+        // Calculate the index for the specific error message based on the callback index
         index = commandContent->callback_index - (uint8_t) NO_COMMAND_FOUND;
+        
+        // Print the corresponding error message to the UART port
         printf(XML_Proccessing_Messages[index]);
     }
     else
     {
+        // Call the corresponding callback function from the global command list
+        // using the callback index provided in commandContent
         g_cmd_list[commandContent->callback_index].callback(commandContent);
     }
 }
+
 
