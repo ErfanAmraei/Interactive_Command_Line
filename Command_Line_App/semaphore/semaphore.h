@@ -5,13 +5,11 @@
 extern BinarySemaphoreState g_semaphore;
 
 // Semaphore states for a binary semaphore
-typedef enum {
+typedef enum 
+{
     SEMAPHORE_UNLOCKED = 0,  // Semaphore is available for use
     SEMAPHORE_LOCKED = 1     // Semaphore is currently in use (locked)
 } BinarySemaphoreState;
-
-// Function to initialize the semaphore
-void semaphore_init(BinarySemaphoreState *semaphore);
 
 // Function to acquire the semaphore
 void acquire_semaphore(BinarySemaphoreState *semaphore);

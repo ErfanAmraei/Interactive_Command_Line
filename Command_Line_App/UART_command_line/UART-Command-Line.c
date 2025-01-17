@@ -8,7 +8,8 @@
   ******************************************************************************/
 
 #include "HAL-SYSTEM/inc/stm32f10x.h"
-#include "../inc/UART_Command_Line.h"
+#include "UART_Command_Line.h"
+#include "../memory_utility/memory_utility.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -86,8 +87,6 @@ ErrorStatus SetLedValue(const struct XMLDataExtractionResult *CommandContent)
     return outcome;
 }
 
-
-
 /**
 * @brief Callback function to retrieve the heater value based on command.
 *
@@ -128,93 +127,101 @@ ErrorStatus GetHeaterValue(const struct XMLDataExtractionResult *CommandContent)
 }
 
 /**
+ * @brief Function to find the location of a tag in an XML string.
+ *
+ * @param xml: Pointer to the XML string
+ * @param tag: Pointer to the tag name to locate
+ * @param kind_of_tag: Specifies whether to find an opening tag (0) or a closing tag (1)
+ * @return Pointer to the tag location in the XML string, or NULL if not found
+ */
+const char* find_tag_location(const char *xml, const char *tag, uint8_t kind_of_tag) 
+{
+    //validate input parameters
+    if(!xml || !tag || kind_of_tag > CLOSE_TAG)
+    {
+        return NULL; // invalid input parameters
+    }
+    
+    //allocated one memory block for the tag
+    char *formatted_tag = (char *) MemoryPool_Allocate();
+    
+    if (!formatted_tag) 
+    {
+        return NULL; // Memory allocation failed
+    }
+
+    // Format the tag based on kind_of_tag (0: opening, 1: closing)
+    if (kind_of_tag == OPEN_TAG) 
+    {
+        snprintf(formatted_tag, BLOCK_SIZE, "<%s>", tag);
+    } 
+    else 
+    {
+        snprintf(formatted_tag, BLOCK_SIZE, "</%s>", tag);
+    }
+
+    // Find the tag in the XML string
+    const char *tag_location = strstr(xml, formatted_tag);
+
+    // Free allocated memory
+    MemoryPool_Free((char *) formatted_tag);
+
+    return tag_location; // Return the location of the tag, or NULL if not found
+}
+
+/**
  * @brief Function to extract a value from an XML string between specific tags
- * 
+ *
  * @param xml: Pointer to the XML string
  * @param tag: Pointer to the tag name whose value needs to be extracted
  * @param tag_value: Pointer to a buffer where the extracted value will be stored
  * @param value_size: Size of the buffer for tag_value
- * 
  * @retval XML_Parser_Status_t: Status of the extraction (e.g., success or error)
  */
-XML_Parser_Status_t extract_value_from_xml(const char *xml, 
-                                           const char *tag, 
-                                           char *tag_value, 
-                                           size_t value_size) 
+XML_Parser_Status_t extract_value_from_xml(const char *xml, const char *tag, 
+                                           char *tag_value, size_t value_size) 
 {
     // Initialize the return value to XML_OK (success)
     XML_Parser_Status_t outcome = XML_OK;
 
-    // Pointers to store the opening and closing tags
-    char *open_tag = NULL;
-    char *close_tag = NULL;
-    // Pointers to mark the start and end of the tag value in the XML string
-    char *start = NULL;
-    char *end = NULL;
-    // Variable to store the length of the extracted tag value
-    size_t tag_length = 0;
-
-    // Memory allocation size for open_tag and close_tag
-    size_t memory_size = 32;
-    
     // Check if input parameters are valid
     if (!xml || !tag || !tag_value || value_size == 0) 
     {
-        outcome = INVALID_OPERATION; // Set outcome to error status for invalid operation
-    } 
-    else 
+        return INVALID_OPERATION; // Invalid input parameters
+    }
+
+    // Find the opening and closing tags
+    const char *start = find_tag_location(xml, tag, OPEN_TAG); // Find opening tag
+    const char *end = find_tag_location(xml, tag, CLOSE_TAG);   // Find closing tag
+
+    // Ensure both tags are found and in proper order
+    if (start && end && end > start) 
     {
-        // Allocate memory for opening and closing tags
-        open_tag = (char *)malloc(memory_size * sizeof(char));
-        close_tag = (char *)malloc(memory_size * sizeof(char));
+        start += strlen(tag) + 2; // Move the pointer past the opening tag (e.g., "<tag>")
 
-        // Check if memory allocation was successful
-        if (open_tag && close_tag) 
+        size_t tag_length = end - start; // Calculate the length of the value
+
+        // Check if the extracted value fits in the provided buffer
+        if (tag_length >= value_size) 
         {
-            // Format the opening and closing tags
-            snprintf(open_tag, memory_size, "<%s>", tag);
-            snprintf(close_tag, memory_size, "</%s>", tag);
-
-            // Find the opening tag in the XML string
-            start = strstr(xml, open_tag);
-            // Find the closing tag in the XML string
-            end = strstr(start, close_tag);
-            
-            // Ensure both tags are found
-            if (start && end) 
-            {
-                start += strlen(open_tag); // Move the pointer to the start of the value
-                tag_length = end - start;  // Calculate the length of the value
-
-                // Check if the extracted value fits in the provided buffer
-                if (tag_length >= value_size) 
-                {
-                    outcome = BAD_XML; // Set outcome to error status if value is too large
-                } 
-                else 
-                {
-                    // Copy the extracted value into the provided buffer
-                    strncpy(tag_value, start, tag_length);
-                    tag_value[tag_length] = '\0'; // Null-terminate the string
-                    outcome = XML_OK; // Set outcome to success
-                }
-            } 
-            else 
-            {
-                outcome = BAD_XML; // Set outcome to error if tags are not found
-            }
-            // Free the allocated memory for tags
-            free(open_tag);
-            free(close_tag);
+            outcome = BAD_XML; // Value too large for buffer
         } 
         else 
         {
-            outcome = BAD_XML; // Set outcome to error if memory allocation fails
+            // Copy the extracted value into the provided buffer
+            strncpy(tag_value, start, tag_length);
+            tag_value[tag_length] = '\0'; // Null-terminate the string
+            outcome = XML_OK; // Extraction successful
         }
+    } 
+    else 
+    {
+        outcome = BAD_XML; // Tags not found or malformed XML
     }
-    // Return the outcome of the operation
-    return outcome;
+
+    return outcome; // Return the outcome of the operation
 }
+
 
 /**
  * @brief Looks for the specified command in the global command list.

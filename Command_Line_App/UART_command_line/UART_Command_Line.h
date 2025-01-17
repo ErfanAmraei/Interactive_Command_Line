@@ -13,12 +13,14 @@
 
 #define CMD_AND_PARAM_LENGTH           (uint8_t) 32 //command and parameter can be maximum 32 bytes long
 
-#define NEWLINE_ASCII   (char) 10  // ASCII value for newline character
+#define OPEN_TAG     (uint8_t) 0
+#define CLOSE_TAG    (uint8_t) 1
 
 /**
  * @brief Enum to define the indexes of the UART_Message array
 */
-typedef enum {
+typedef enum 
+{
     ERR_NULL_POINTER,     // Index 0: "Error: CommandContent pointer is null.\n"
     CMD_PROCESSED,        // Index 1: "Command received and processed.\n"
     FIRST_CMD,            // Index 5: "\nFirst Command: %s\n"
@@ -67,6 +69,8 @@ typedef enum
    NO_OF_PARSER_MESSAGES = 0xFF // Represents the total number of parser status messages; used as a limit or marker
 } XML_Parser_Status_t;
 
+
+/******************************function prototypes*******************************/
 //SetLedValue prototype
 ErrorStatus SetLedValue(const struct XMLDataExtractionResult *CommandContent);
 //GetHeaterValue
@@ -80,5 +84,7 @@ uint8_t find_command_in_list(const char* cmd);
 struct XMLDataExtractionResult extract_command_and_params_from_xml(const char *xml);
 
 void execute_callback_functions(const struct XMLDataExtractionResult *commandContent);
+
+const char* find_tag_location(const char *xml, const char *tag, uint8_t kind_of_tag);
 
 #endif //End of UCL_H

@@ -6,37 +6,74 @@
 #include <stdio.h>
 #include <string.h>
 
+/**
+* @breif USART2 Interrupt Service Routine (ISR)
+*
+* @param none
+*
+* @retval none
+*/
 void USART2_IRQHandler(void)
 {
-    static uint16_t counter = (uint16_t) 0x0000;     // Static counter to keep track of received characters
-    static bool mem_alloc_status = false;            // Flag to store memory allocation status for the raw buffer
-
+    static uint32_t char_index = (uint32_t) 0x00;     // Static char_index to keep track of received characters
+    const uint32_t  MEM_BLOCK_NO = (uint32_t) 0x08;   //8 blocks *32 bytes = 256 bytes
+    const uint32_t  CHECK_PARENT_TAG = (uint32_t) 0x07; // check the parent tag after receiving the first 7 characters
+    
     // Check if the RXNE (Receive Data Register Not Empty) flag is set (indicating new data is available)
     if(SET == USART_GetFlagStatus(USART2, USART_FLAG_RXNE))
     {
-        // If the counter is zero, indicating we are receiving the start of a new message
-        if(counter == (uint16_t) 0x0000)
+        // If the char_index is zero, indicating we are receiving the start of a new message
+        if(char_index == (uint32_t) 0x0000)
         {
             // Attempt to allocate memory for the raw UART buffer
-            mem_alloc_status = allocate_memory(&g_uart_xml_raw_buffer, INPUT_BUFFER_LENGTH);
+            g_uart_xml_raw_buffer = (char *) MemoryPool_AllocatePages(MEM_BLOCK_NO);
 
             // If memory allocation was successful
-            if(mem_alloc_status)
+            if(g_uart_xml_raw_buffer)
             {
                 // Clear the raw buffer to avoid leftover data from previous messages
                 memset(g_uart_xml_raw_buffer, 0, sizeof(g_uart_xml_raw_buffer));
+
+                // Read a character from USART2 and store it in the raw buffer
+                g_uart_xml_raw_buffer[char_index] = (char) USART_ReceiveData(USART2);
+                g_uart_xml_raw_buffer[char_index+1] = '\0'; // Null-terminate the string
+                ++char_index;
             }
         }
-        else
+        else if (char_index < (BLOCK_SIZE * MEM_BLOCK_NO))
         {
-            // If memory was successfully allocated
-            if(mem_alloc_status)
+            //if memory was successfully allocated
+            if(g_uart_xml_raw_buffer)
             {
-                // Read a character from USART2 and store it in the raw buffer
-                g_uart_xml_raw_buffer[counter] = (char) USART_ReceiveData(USART2);
+                //checked if the input xml starts with <UCL> tag after seven characters have been received
+                if(char_index == CHECK_PARENT_TAG)
+                {
+                    //looking for the <UCL> parant tag, if it doex no exists, then the input string is invalid
+                    if(find_tag_location(g_uart_xml_raw_buffer, XML_PARENT_TAG, OPEN_TAG) == NULL)
+                    {
+                        //free the allocated memory
+                        if(g_uart_xml_raw_buffer)
+                        {
+                            //free the raw buffer to release memory as it is no longer needed
+                            MemoryPool_FreePages((char*) g_uart_xml_raw_buffer, MEM_BLOCK_NO);
+                        }
+                        
+                        //reset the char_index 
+                        char_index = (uint32_t) 0x00;
 
-                // Check if the received character is the newline character (end of message)
-                if(g_uart_xml_raw_buffer[counter] == NEWLINE_ASCII)
+                        //exit from the ISR
+                        return;
+                    }
+                }
+
+                // Read a character from USART2 and store it in the raw buffer
+                g_uart_xml_raw_buffer[char_index] = (char) USART_ReceiveData(USART2);
+
+                // Null-terminate the string
+                g_uart_xml_raw_buffer[char_index+1] = '\0'; 
+
+                // Check if the received string contains </UCL>. it means the whole xml string is received
+                if(find_tag_location(g_uart_xml_raw_buffer, XML_PARENT_TAG, CLOSE_TAG))
                 {
                     // If the semaphore is unlocked, indicating the main application can process data
                     if(g_semaphore == SEMAPHORE_UNLOCKED)
@@ -45,10 +82,10 @@ void USART2_IRQHandler(void)
                         acquire_semaphore(&g_semaphore);
 
                         // Allocate memory for the main buffer where the data will be copied
-                        mem_alloc_status = allocate_memory(&g_uart_xml_main_buffer, INPUT_BUFFER_LENGTH);
+                        g_uart_xml_main_buffer = (char *) MemoryPool_AllocatePages(MEM_BLOCK_NO);
 
                         // If memory allocation for the main buffer was successful
-                        if(mem_alloc_status)
+                        if(g_uart_xml_main_buffer)
                         {
                             // Clear the main buffer to avoid leftover data from previous messages
                             memset(g_uart_xml_main_buffer, 0, sizeof(g_uart_xml_main_buffer));
@@ -58,24 +95,34 @@ void USART2_IRQHandler(void)
                         }
 
                         // Free the raw buffer to release memory as it is no longer needed
-                        free(g_uart_xml_raw_buffer);
+                        MemoryPool_FreePages((char*) g_uart_xml_raw_buffer, MEM_BLOCK_NO);
                     }
-                    // Reset the counter and memory allocation flag to prepare for the next message
-                    counter = (uint16_t) 0x0000;
-                    mem_alloc_status = false;
+                    // Reset the char_index and memory allocation flag to prepare for the next message
+                    char_index = (uint32_t) 0x00;
                 }
                 else
                 {
-                    // Increment the counter to store the next received character in the buffer
-                    ++counter;
+                    // Increment the char_index to store the next received character in the buffer
+                    ++char_index;
                 }
             }
             else
             {
-                // If memory allocation failed, reset the counter and memory flag
-                counter = (uint16_t) 0x0000;
-                mem_alloc_status = false;
+                // If memory allocation failed, reset the char_index and memory flag
+                char_index = (uint32_t) 0x00;
             }
+        }
+        else
+        {
+            if(g_uart_xml_raw_buffer)
+            {
+               // Free the raw buffer to release memory as it is no longer needed
+               MemoryPool_FreePages((char*) g_uart_xml_raw_buffer, MEM_BLOCK_NO);
+            }
+            
+            //reset the char_index and memory flag
+            char_index = (uint32_t) 0x00;
+            mem_alloc_status = false;
         }
     }
 }
