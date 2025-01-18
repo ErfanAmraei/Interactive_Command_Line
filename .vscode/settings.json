@@ -3,6 +3,8 @@
         "hal_common.h": "c",
         "stm32f10x.h": "c",
         "uart_command_line.h": "c",
-        "memory_utility.h": "c"
+        "memory_utility.h": "c",
+        "hal_usart2_config.h": "c",
+        "misc.h": "c"
     }
 }

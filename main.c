@@ -9,7 +9,7 @@
 
 static const uint32_t PAGES_NEEDED_FOR_EXTRACTED_DATA = (uint32_t) 0x05;
 
-int main()
+int main(void)
 {
 	HAL_config_MCU();
 	MemoryPool_Init();
@@ -19,20 +19,20 @@ int main()
 		if (g_semaphore == SEMAPHORE_LOCKED) 
 		{
 			// Attempt to allocate memory from the memory pool to hold the extracted data.
-			g_extracted_data = (char *) MemoryPool_AllocatePages(PAGES_NEEDED_FOR_EXTRACTED_DATA);
+			g_extracted_data = (XMLDataExtractionResult *) MemoryPool_AllocatePages(PAGES_NEEDED_FOR_EXTRACTED_DATA);
 
 			// Check if the memory allocation was successful.
 			if (g_extracted_data) 
 			{
 				// Extract command and parameters from the XML data in the UART buffer.
 				// The function returns the extracted data and assigns it to the allocated memory.
-				g_extracted_data = extract_command_and_params_from_xml(g_uart_xml_main_buffer);
+				(*g_extracted_data) = extract_command_and_params_from_xml(g_uart_xml_main_buffer);
 
 				// Execute the relevant callback functions, passing the extracted data as input.
-				execute_callback_functions(&g_extracted_data);
+				execute_callback_functions(g_extracted_data);
 
 				// Deallocate the memory that was allocated earlier to prevent memory leaks.
-				MemoryPool_FreePages((char *) g_extracted_data);
+				MemoryPool_FreePages((char *) g_extracted_data, PAGES_NEEDED_FOR_EXTRACTED_DATA);
 			}
 
 			// Release the semaphore to indicate that the resource is now available for use.

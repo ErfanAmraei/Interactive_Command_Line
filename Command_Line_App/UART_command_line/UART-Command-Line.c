@@ -7,7 +7,7 @@
   *          firmware functions.
   ******************************************************************************/
 
-#include "HAL-SYSTEM/inc/stm32f10x.h"
+#include "../../HAL/HAL-SYSTEM/inc/stm32f10x.h"
 #include "UART_Command_Line.h"
 #include "../memory_utility/memory_utility.h"
 #include <stdlib.h>

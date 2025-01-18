@@ -49,6 +49,7 @@
  */
 
 #include "memory_utility.h"
+#include "../UART_command_line/UART_Command_Line.h"
 #include <stdlib.h>
 
 // Global memory pool instance
@@ -58,7 +59,7 @@ static MemoryPool memPool;
 char* g_uart_xml_raw_buffer = NULL;  //temporary buffer for receiving raw UART data
 char* g_uart_xml_main_buffer = NULL; // main buffer for processed XML data
 
-struct XMLDataExtractionResult g_extracted_data;
+struct XMLDataExtractionResult *g_extracted_data;
 /**
  * @brief Initializes the memory pool by clearing the memory and marking all blocks as free.
  */

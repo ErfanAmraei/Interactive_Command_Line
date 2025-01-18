@@ -21,7 +21,7 @@ typedef struct
 //buffers for receiving and processing incoming XML data via UART
 extern char* g_uart_xml_raw_buffer;  //temporary buffer for receiving raw UART data
 extern char* g_uart_xml_main_buffer; // main buffer for processed XML data
-extern struct XMLDataExtractionResult g_extracted_data;
+extern struct XMLDataExtractionResult *g_extracted_data;
 
 /*************function prototypes**********************/
 void MemoryPool_Init(void);

@@ -11,13 +11,12 @@
  * data transmission and reception.
  */
 
-
-#include "../inc/hal_usart2_config.h"
-
+#include "../inc/stm32f10x_usart.h"
 
 // Initializes the standard I/O (printf) mechanism for embedded systems 
 // by defining the required structures for standard input, output, and error streams.
 struct __FILE { int handle; };  // Custom definition for FILE structure to work with printf in embedded systems
+
 FILE __stdout;                 // Standard output stream
 FILE __stdin;                  // Standard input stream
 FILE __stderr;                 // Standard error stream
