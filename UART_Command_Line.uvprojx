@@ -337,8 +337,8 @@
             <v6WtE>0</v6WtE>
             <v6Rtti>0</v6Rtti>
             <VariousControls>
-              <MiscControls></MiscControls>
-              <Define></Define>
+              <MiscControls>-Wno-unsafe-buffer-usage -Wno-padded</MiscControls>
+              <Define>STM32F10X_MD</Define>
               <Undefine></Undefine>
               <IncludePath></IncludePath>
             </VariousControls>

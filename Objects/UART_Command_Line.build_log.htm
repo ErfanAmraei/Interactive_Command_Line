@@ -22,87 +22,41 @@ Dialog DLL:      TCM.DLL V1.56.4.0
  
 <h2>Project:</h2>
 D:\Keil-Project\UART-Interactive-Command-Line\UART_Command_Line.uvprojx
-Project File Date:  01/18/2025
+Project File Date:  01/21/2025
 
 <h2>Output:</h2>
 *** Using Compiler 'V6.21', folder: 'C:\Keil_v5\ARM\ARMCLANG\Bin'
-Build target 'Target 1'
+Rebuild target 'Target 1'
+assembling startup_stm32f10x_md.s...
+compiling hal_gpio_config.c...
 compiling hal_common.c...
+compiling main.c...
+compiling stm32f10x_gpio.c...
+HAL/HAL_ISR/UART_isr.c(226): warning: unused function 'USART2_IRQHandler' [-Wunused-function]
+  226 | static void USART2_IRQHandler(void)
+      |             ^~~~~~~~~~~~~~~~~
+1 warning generated.
+compiling UART_isr.c...
+compiling stm32f10x_rcc.c...
 HAL/HAL-SYSTEM/src/misc.c(133): warning: implicit conversion loses integer precision: 'uint32_t' (aka 'unsigned int') to 'uint8_t' (aka 'unsigned char') [-Wimplicit-int-conversion]
   133 |     NVIC->IP[NVIC_InitStruct->NVIC_IRQChannel] = tmppriority;
       |                                                ~ ^~~~~~~~~~~
-HAL/HAL-SYSTEM/src/misc.c(133): warning: unsafe buffer access [-Wunsafe-buffer-usage]
-  133 |     NVIC->IP[NVIC_InitStruct->NVIC_IRQChannel] = tmppriority;
-      |     ^~~~~~~~
-HAL/HAL-SYSTEM/src/../inc/core_cm3.h(1376): note: expanded from macro 'NVIC'
- 1376 | #define NVIC                ((NVIC_Type      *)     NVIC_BASE     )   /*!< NVIC configuration struct */
-      |                             ^
-HAL/HAL-SYSTEM/src/misc.c(136): warning: unsafe buffer access [-Wunsafe-buffer-usage]
-  136 |     NVIC->ISER[NVIC_InitStruct->NVIC_IRQChannel >> 0x05] =
-      |     ^~~~~~~~~~
-HAL/HAL-SYSTEM/src/../inc/core_cm3.h(1376): note: expanded from macro 'NVIC'
- 1376 | #define NVIC                ((NVIC_Type      *)     NVIC_BASE     )   /*!< NVIC configuration struct */
-      |                             ^
-HAL/HAL-SYSTEM/src/misc.c(142): warning: unsafe buffer access [-Wunsafe-buffer-usage]
-  142 |     NVIC->ICER[NVIC_InitStruct->NVIC_IRQChannel >> 0x05] =
-      |     ^~~~~~~~~~
-HAL/HAL-SYSTEM/src/../inc/core_cm3.h(1376): note: expanded from macro 'NVIC'
- 1376 | #define NVIC                ((NVIC_Type      *)     NVIC_BASE     )   /*!< NVIC configuration struct */
-      |                             ^
-4 warnings generated.
+1 warning generated.
 compiling misc.c...
-main.c(22): error: expected expression
-   22 |                         g_extracted_data = (XMLDataExtractionResult *) MemoryPool_AllocatePages(PAGES_NEEDED_FOR_EXTRACTED_DATA);
-      |                                                                      ^
-main.c(22): error: use of undeclared identifier 'XMLDataExtractionResult'
-   22 |                         g_extracted_data = (XMLDataExtractionResult *) MemoryPool_AllocatePages(PAGES_NEEDED_FOR_EXTRACTED_DATA);
-      |                                             ^
-2 errors generated.
-compiling main.c...
-HAL/HAL-UART/src/hal_usart2_config.c(20): error: unknown type name 'FILE'
-   20 | FILE __stdout;                 // Standard output stream
-      | ^
-HAL/HAL-UART/src/hal_usart2_config.c(21): error: unknown type name 'FILE'
-   21 | FILE __stdin;                  // Standard input stream
-      | ^
-HAL/HAL-UART/src/hal_usart2_config.c(22): error: unknown type name 'FILE'
-   22 | FILE __stderr;                 // Standard error stream
-      | ^
-HAL/HAL-UART/src/hal_usart2_config.c(26): error: unknown type name 'FILE'
-   26 | int fputc(int character, FILE *f)  
-      |                          ^
-HAL/HAL-UART/src/hal_usart2_config.c(32): warning: implicit conversion loses integer precision: 'int' to 'uint16_t' (aka 'unsigned short') [-Wimplicit-int-conversion]
-   32 |     USART_SendData(USART2, character);
-      |     ~~~~~~~~~~~~~~         ^~~~~~~~~
-HAL/HAL-UART/src/hal_usart2_config.c(47): error: call to undeclared function 'RCC_APB1PeriphClockCmd'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
-   47 |     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
-      |     ^
-HAL/HAL-UART/src/hal_usart2_config.c(47): error: use of undeclared identifier 'RCC_APB1Periph_USART2'
-   47 |     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
-      |                            ^
-HAL/HAL-UART/src/hal_usart2_config.c(50): error: use of undeclared identifier 'USART_BAUD_RATE'
-   50 |     USART2_Config.USART_BaudRate            = USART_BAUD_RATE;           // Set baud rate (defined elsewhere)
-      |                                               ^
-HAL/HAL-UART/src/hal_usart2_config.c(14): warning: In file included from...
-HAL/HAL-UART/src/../inc/stm32f10x_usart.h(50): warning: padding size of 'USART_InitTypeDef' with 2 bytes to alignment boundary [-Wpadded]
-   50 | typedef struct
-      |         ^
-HAL/HAL-UART/src/hal_usart2_config.c(62): error: use of undeclared identifier 'NVIC_PRIORITYGROUP_4'
-   62 |     NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4); //set priority grouping
-      |                              ^
-HAL/HAL-UART/src/hal_usart2_config.c(63): error: use of undeclared identifier 'USART_NVIC_PERIORITY'
-   63 |     NVIC_SetPriority(USART2_IRQn, USART_NVIC_PERIORITY); //Set interrupt priority
-      |                                   ^
-HAL/HAL-UART/src/hal_usart2_config.c(42): warning: no previous prototype for function 'HAL_USART2_Config' [-Wmissing-prototypes]
-   42 | void HAL_USART2_Config(void)
-      |      ^
-HAL/HAL-UART/src/hal_usart2_config.c(42): note: declare 'static' if the function is not intended to be used outside of this translation unit
-   42 | void HAL_USART2_Config(void)
-      | ^
-      | static 
-3 warnings and 9 errors generated.
 compiling hal_usart2_config.c...
-".\Objects\UART_Command_Line.axf" - 11 Error(s), 7 Warning(s).
+compiling semaphore.c...
+compiling system_stm32f10x.c...
+compiling memory_utility.c...
+HAL/HAL-UART/src/stm32f10x_usart.c(1044): warning: implicit conversion loses integer precision: 'int' to 'uint16_t' (aka 'unsigned short') [-Wimplicit-int-conversion]
+ 1044 |   itmask = ((uint16_t)0x01 << (uint16_t)bitpos);
+      |          ~  ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~
+1 warning generated.
+compiling stm32f10x_usart.c...
+compiling UART-Command-Line.c...
+linking...
+Program Size: Code=12056 RO-data=1072 RW-data=36 ZI-data=2708  
+FromELF: creating hex file...
+".\Objects\UART_Command_Line.axf" - 0 Error(s), 3 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -115,8 +69,7 @@ Package Vendor: Keil
   C:/Users/Erfan/AppData/Local/Arm/Packs/Keil/STM32F1xx_DFP/2.4.1/Device/Include
 
 <h2>Collection of Component Files used:</h2>
-Target not created.
-Build Time Elapsed:  00:00:01
+Build Time Elapsed:  00:00:00
 </pre>
 </body>
 </html>

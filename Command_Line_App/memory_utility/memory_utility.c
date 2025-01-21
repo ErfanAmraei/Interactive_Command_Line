@@ -98,22 +98,34 @@ void* MemoryPool_Allocate(void)
  * @brief Frees a single block of memory back to the pool.
  * @param block_pointer Pointer to the block to free.
  */
+/**
+ * @brief Frees a single block of memory back to the pool.
+ * @param block_pointer Pointer to the block to free.
+ */
 void MemoryPool_Free(void* block_pointer) 
 {
     if (block_pointer != NULL) 
-    { // Ensure the pointer is valid
-        // Calculate the block index from the pointer
-        uint32_t block_index = ((uint8_t*)block_pointer - memPool.pool) / BLOCK_SIZE;
+    { 
+        // Calculate the block offset
+        int offset = (int)((uint8_t*)block_pointer - memPool.pool);
 
-        // If the index is valid, mark the block as free
-        if (block_index < BLOCK_COUNT) 
+        // Ensure the offset is non-negative
+        if (offset >= 0) 
         {
-            memPool.block_usage[block_index] = false;
+            // Calculate the block index from the pointer
+            uint32_t block_index = (uint32_t)offset / BLOCK_SIZE;
 
-            block_pointer = NULL;
+            // If the index is valid, mark the block as free
+            if (block_index < BLOCK_COUNT) 
+            {
+                memPool.block_usage[block_index] = false;
+
+                block_pointer = NULL;
+            }
         }
     }
 }
+
 
 /**
  * @brief Allocates multiple contiguous blocks (pages) of memory from the pool.
@@ -170,22 +182,30 @@ void MemoryPool_FreePages(void* block_pointer, uint32_t page_count)
     // Ensure valid inputs
     if (block_pointer != NULL && page_count > 0) 
     { 
-        //calculate the starting block index
-        uint32_t start_block_index = ((uint8_t*)block_pointer - memPool.pool) / BLOCK_SIZE;
+        // Calculate the offset in bytes from the start of the pool
+        int offset = (int)((uint8_t*)block_pointer - memPool.pool);
 
-        //ensure the range is valid
-        if (start_block_index + page_count <= BLOCK_COUNT) 
+        // Ensure the offset is non-negative
+        if (offset >= 0) 
         {
-            //mark all blocks in the range as free
-            for (uint32_t offset = 0; offset < page_count; offset++) 
-            {
-                memPool.block_usage[start_block_index + offset] = false;
-            }
+            // Calculate the starting block index
+            uint32_t start_block_index = (uint32_t)offset / BLOCK_SIZE;
 
-            block_pointer = NULL; //avoid dangling pointer after freeing memory
+            // Ensure the range is valid
+            if (start_block_index + page_count <= BLOCK_COUNT) 
+            {
+                // Mark all blocks in the range as free
+                for (uint32_t i = 0; i < page_count; i++) 
+                {
+                    memPool.block_usage[start_block_index + i] = false;
+                }
+
+                block_pointer = NULL; // Avoid dangling pointer after freeing memory
+            }
         }
     }
 }
+
 
 /**
  * @brief Calculates and returns the number of free blocks in the memory pool.
@@ -206,3 +226,4 @@ uint32_t MemoryPool_GetFreeBlocks(void)
 
     return free_block_count; // Return the total number of free blocks
 }
+

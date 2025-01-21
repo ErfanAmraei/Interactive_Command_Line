@@ -40,3 +40,29 @@ void release_semaphore(BinarySemaphoreState *semaphore)
     } 
 }
 
+/**
+ * @brief Checks the state of a binary semaphore.
+ *
+ *
+ * @param semaphore Pointer to the BinarySemaphoreState variable representing 
+ *                  the state of the semaphore. The pointer must not be NULL.
+ *
+ * @return `true` if the semaphore is locked (`SEMAPHORE_LOCKED`), `false` otherwise.
+ *
+ */
+bool obtain_semaphore(BinarySemaphoreState *semaphore)
+{
+    bool outcome = false;
+
+    if(semaphore)
+    {
+        outcome = (*semaphore == SEMAPHORE_LOCKED);
+    }
+    else
+    {
+        outcome = false;
+    }
+
+    return outcome;
+}
+

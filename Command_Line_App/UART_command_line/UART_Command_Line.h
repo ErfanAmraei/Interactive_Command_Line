@@ -45,7 +45,7 @@ struct XMLDataExtractionResult
 *
 * @retval none.
 */
-typedef ErrorStatus (*CommandCallback)(struct XMLDataExtractionResult *CommandContent);
+typedef ErrorStatus (*CommandCallback)(const struct XMLDataExtractionResult *CommandContent);
 
 /**
 * @brief CommandEntry is used to configure input commands and callback functions

@@ -19,4 +19,4 @@
   HAL\HAL-SYSTEM\src\..\inc\..\..\HAL-UART\inc\..\..\HAL-SYSTEM\inc\stm32f10x.h \
   HAL\HAL-SYSTEM\src\..\inc\..\..\HAL-UART\inc\hal_usart2_config.h \
   HAL\HAL-SYSTEM\src\..\inc\..\..\HAL-UART\inc\..\..\HAL-RCC\inc\stm32f10x_rcc.h \
-  HAL\HAL-SYSTEM\src\..\inc\..\..\HAL-UART\inc\..\..\HAL-SYSTEM\inc\misc.h
+  HAL\HAL-SYSTEM\src\..\inc\..\..\HAL-UART\inc\..\..\HAL-SYSTEM\inc\core_cm3.h

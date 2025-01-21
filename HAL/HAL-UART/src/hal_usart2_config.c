@@ -11,28 +11,58 @@
  * data transmission and reception.
  */
 
-#include "../inc/stm32f10x_usart.h"
+//#include "../inc/stm32f10x_usart.h"
+//#include "../../HAL-RCC/inc/stm32f10x_rcc.h"
+#include "../../HAL-UART/inc/hal_usart2_config.h"
 
-// Initializes the standard I/O (printf) mechanism for embedded systems 
-// by defining the required structures for standard input, output, and error streams.
-struct __FILE { int handle; };  // Custom definition for FILE structure to work with printf in embedded systems
 
-FILE __stdout;                 // Standard output stream
-FILE __stdin;                  // Standard input stream
-FILE __stderr;                 // Standard error stream
+#define  UART_TIMEOUT    (uint32_t) 3000
+#define  PRIORITY_GROUP  (uint32_t)0x300
 
-// Redirects printf output to USART2. 
-// When printf is called, this function will execute, sending each character through USART2.
-int fputc(int character, FILE *f)  
+/**
+ * @brief Transmits a string of data via the specified UART interface.
+ *
+ * Sends characters from the provided string through the UART. Checks for null
+ * pointers and implements a timeout mechanism to prevent blocking indefinitely.
+ *
+ * @param UARTx Pointer to the USART peripheral (e.g., USART1, USART2).
+ * @param data  Null-terminated string to be transmitted.
+ * 
+ * @return SUCCESS if data is transmitted successfully, ERROR otherwise.
+ */
+
+ErrorStatus UART_WriteData(USART_TypeDef *UARTx, const char* data)
 {
-    // wait until the USART2 transmit data register is empty (ready to transmit).
-    while (!USART_GetFlagStatus(USART2, USART_FLAG_TXE));  
+    ErrorStatus outcome = SUCCESS;
+    uint16_t index = 0;
+    uint16_t timeout = 0;
+    if(!data || !UARTx)
+    {
+        outcome = ERROR;
+    }
+    else
+    {
+        while(data[index])
+        {
+            // Wait until the USART transmit data register is empty or timeout occurs
+            while (USART_GetFlagStatus(UARTx, USART_FLAG_TXE) == RESET) 
+            {
+                ++timeout;
 
-    // send the character through USART2.
-    USART_SendData(USART2, character);
+                if(timeout > UART_TIMEOUT)
+                {
+                    break;
+                }
+            }
 
-    // return the transmitted character as confirmation.
-    return character;  
+            if(timeout > UART_TIMEOUT)
+            {
+                break;
+            }
+            USART_SendData(UARTx, (char) data[index]);
+        }
+    }
+		return outcome;
 }
 
 /**
@@ -56,10 +86,10 @@ void HAL_USART2_Config(void)
     USART_Init(USART2, &USART2_Config);                                  // Initialize USART2 with the configuration
 
     //enable the RXNE (Receive Data Register Not Empty) interrupt
-    USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
+    USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);  
 
     //configure NVIC for USART2 interrupts
-    NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4); //set priority grouping
+    NVIC_SetPriorityGrouping(PRIORITY_GROUP); //set priority grouping
     NVIC_SetPriority(USART2_IRQn, USART_NVIC_PERIORITY); //Set interrupt priority
     NVIC_EnableIRQ(USART2_IRQn);                   //enable USART2 interrupt in NVIC
 

@@ -5,6 +5,9 @@
         "uart_command_line.h": "c",
         "memory_utility.h": "c",
         "hal_usart2_config.h": "c",
-        "misc.h": "c"
+        "misc.h": "c",
+        "system_stm32f10x.h": "c",
+        "stm32f10x_rcc.h": "c",
+        "stm32f10x_conf.h": "c"
     }
 }

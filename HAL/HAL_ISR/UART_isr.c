@@ -27,7 +27,7 @@ bool start_new_message(uint32_t mem_blocks, uint32_t *char_index, char received_
         if (g_uart_xml_raw_buffer)
         {
             // Clear the allocated buffer
-            memset(g_uart_xml_raw_buffer, 0, sizeof(g_uart_xml_raw_buffer));
+            memset(g_uart_xml_raw_buffer, 0, sizeof(*g_uart_xml_raw_buffer));
 
             // Store the first received character in the buffer
             g_uart_xml_raw_buffer[(*char_index)++] = received_char;
@@ -114,7 +114,7 @@ void process_received_char(char received_char, uint32_t *char_index, uint32_t me
         if (find_tag_location(g_uart_xml_raw_buffer, XML_PARENT_TAG, CLOSE_TAG))
         {
             // Ensure the semaphore is unlocked before processing
-            if (g_semaphore == SEMAPHORE_UNLOCKED)
+            if (!obtain_semaphore(&g_semaphore))
             {
                 // Lock the semaphore to signal data processing
                 acquire_semaphore(&g_semaphore);
@@ -160,7 +160,7 @@ void process_complete_message(uint32_t mem_blocks)
         if (g_uart_xml_main_buffer)
         {
             // Clear the main buffer
-            memset(g_uart_xml_main_buffer, 0, sizeof(g_uart_xml_main_buffer));
+            memset(g_uart_xml_main_buffer, 0, sizeof(*g_uart_xml_main_buffer));
 
             // Copy the received data to the main buffer
             memcpy(g_uart_xml_main_buffer, g_uart_xml_raw_buffer, strlen(g_uart_xml_raw_buffer) + 1);
@@ -223,7 +223,7 @@ void reset_buffer_state(uint32_t mem_blocks, uint32_t *char_index)
  * @param None
  * @retval None
  */
-void USART2_IRQHandler(void)
+static void USART2_IRQHandler(void)
 {
     static uint32_t char_index = 0;                // Tracks the current position in the received buffer
     const uint32_t MEM_BLOCK_NO = 8;              // Number of memory blocks for the raw buffer

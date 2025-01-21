@@ -16,3 +16,4 @@ void process_complete_message(uint32_t mem_blocks);
 void reset_buffer_state(uint32_t mem_blocks, uint32_t *char_index);
 
 #endif /*UART_ISR_H*/
+

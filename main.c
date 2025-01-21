@@ -16,10 +16,10 @@ int main(void)
 	while(1)
 	{
 		// Check if the semaphore is locked (indicating that the resource is in use).
-		if (g_semaphore == SEMAPHORE_LOCKED) 
+		if (obtain_semaphore(&g_semaphore)) 
 		{
 			// Attempt to allocate memory from the memory pool to hold the extracted data.
-			g_extracted_data = (XMLDataExtractionResult *) MemoryPool_AllocatePages(PAGES_NEEDED_FOR_EXTRACTED_DATA);
+			g_extracted_data = (struct XMLDataExtractionResult *) MemoryPool_AllocatePages(PAGES_NEEDED_FOR_EXTRACTED_DATA);
 
 			// Check if the memory allocation was successful.
 			if (g_extracted_data) 

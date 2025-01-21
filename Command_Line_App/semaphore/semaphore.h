@@ -1,6 +1,8 @@
 #ifndef SEMAPHORE_H
 #define SEMAPHORE_H
 
+#include <stdbool.h>
+
 // Semaphore states for a binary semaphore
 typedef enum 
 {
@@ -16,5 +18,8 @@ void acquire_semaphore(BinarySemaphoreState *semaphore);
 
 // Function to release the semaphore
 void release_semaphore(BinarySemaphoreState *semaphore);
+
+// Function to check semaphore
+bool obtain_semaphore(BinarySemaphoreState *semaphore);
 
 #endif // SEMAPHORE_H

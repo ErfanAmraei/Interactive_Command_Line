@@ -12,4 +12,10 @@
   C:\Keil_v5\ARM\ARMCLANG\include\stdio.h \
   C:\Keil_v5\ARM\ARMCLANG\include\string.h \
   C:\Keil_v5\ARM\ARMCLANG\include\stdbool.h \
-  Command_Line_App\UART_command_line\..\memory_utility\memory_utility.h
+  Command_Line_App\UART_command_line\..\memory_utility\memory_utility.h \
+  Command_Line_App\UART_command_line\..\..\HAL\HAL-UART\inc\hal_usart2_config.h \
+  Command_Line_App\UART_command_line\..\..\HAL\HAL-UART\inc\..\..\HAL-SYSTEM\inc\stm32f10x.h \
+  Command_Line_App\UART_command_line\..\..\HAL\HAL-UART\inc\..\..\HAL-RCC\inc\stm32f10x_rcc.h \
+  Command_Line_App\UART_command_line\..\..\HAL\HAL-UART\inc\..\..\HAL-RCC\inc\..\..\HAL-SYSTEM\inc\stm32f10x.h \
+  Command_Line_App\UART_command_line\..\..\HAL\HAL-UART\inc\stm32f10x_usart.h \
+  Command_Line_App\UART_command_line\..\..\HAL\HAL-UART\inc\..\..\HAL-SYSTEM\inc\core_cm3.h
