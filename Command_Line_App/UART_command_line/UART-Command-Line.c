@@ -26,7 +26,8 @@ static const char* UART_Message[] =
    NULL //proper termination for an array of pointers
 };
 
-#define XML_MSG_ARRAY_SIZE    (uint8_t) 4
+#define XML_MSG_ARRAY_SIZE       (uint8_t) 4
+#define INVALID_OPERATION_INDX   (uint8_t) 1
 
 /*Array of strings representing various XML processing messages. 
  Each string corresponds to a specific XML parsing status, providing 
@@ -142,11 +143,11 @@ ErrorStatus GetHeaterValue(const struct XMLDataExtractionResult *CommandContent)
  */
 const char* find_tag_location(const char *xml, const char *tag, uint8_t kind_of_tag) 
 {
-	  //allocated one memory block for the tag
+	//allocated one memory block for the tag
     char *formatted_tag = NULL;
 	
-	  //this buffer is going to hold the tag location in the xml string
-	  const char *tag_location;
+	//this buffer is going to hold the tag location in the xml string
+	const char *tag_location;
 	
     //validate input parameters
     if(!xml || !tag || kind_of_tag > CLOSE_TAG)
@@ -379,7 +380,7 @@ void execute_callback_functions(const struct XMLDataExtractionResult *commandCon
         //if index is not valid then return invalid operation message
         else
         {
-            UART_WriteData(USART2, (const char*) XML_Proccessing_Messages[INVALID_OPERATION]);
+            UART_WriteData(USART2, (const char*) XML_Proccessing_Messages[INVALID_OPERATION_INDX]);
         }
     }
 
@@ -404,7 +405,7 @@ void execute_callback_functions(const struct XMLDataExtractionResult *commandCon
         //if index is not valid then return invalid operation message
         else
         {
-            UART_WriteData(USART2, (const char*) XML_Proccessing_Messages[1]);
+            UART_WriteData(USART2, (const char*) XML_Proccessing_Messages[INVALID_OPERATION_INDX]);
         }
     }
     else
@@ -421,7 +422,7 @@ void execute_callback_functions(const struct XMLDataExtractionResult *commandCon
         //if index is not valid then return invalid operation message
         else
         {
-            UART_WriteData(USART2, (const char*) XML_Proccessing_Messages[1]);
+            UART_WriteData(USART2, (const char*) XML_Proccessing_Messages[INVALID_OPERATION_INDX]);
         }
         
     }

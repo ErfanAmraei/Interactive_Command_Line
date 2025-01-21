@@ -36,12 +36,19 @@ ErrorStatus UART_WriteData(USART_TypeDef *UARTx, const char* data)
     ErrorStatus outcome = SUCCESS;
     uint16_t index = 0;
     uint16_t timeout = 0;
+    uint16_t data_size = 0;
+
+    //calculate the size of input data buffer
+    data_size = sizeof(*data)/sizeof(data[0]);
+
+    //validate input parameters
     if(!data || !UARTx)
     {
         outcome = ERROR;
     }
     else
     {
+        //loop through data buffer and write it to the uart character by character
         while(data[index])
         {
             // Wait until the USART transmit data register is empty or timeout occurs
@@ -51,18 +58,28 @@ ErrorStatus UART_WriteData(USART_TypeDef *UARTx, const char* data)
 
                 if(timeout > UART_TIMEOUT)
                 {
+                    outcome = ERROR;
                     break;
                 }
             }
 
+            //if timeout happens then it terminates writing data to UART
             if(timeout > UART_TIMEOUT)
             {
                 break;
             }
-            USART_SendData(UARTx, (char) data[index]);
+            
+            //validate the index to make sure data buffer does not overflow
+            if(index > data_size)
+            {
+                outcome = ERROR;
+                break;
+            }
+            //char casted to unsigned short, it is risky but it is not going to make trouble
+            USART_SendData(UARTx, (uint16_t) data[index]);
         }
     }
-		return outcome;
+	return outcome;
 }
 
 /**
