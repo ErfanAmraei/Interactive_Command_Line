@@ -34,7 +34,7 @@ This project highlights coding practices and provides a foundation for future em
    - The system generates an appropriate response.
 
 ## UML Sequence Diagram
-![UML Sequence Diagram](MUL/interactive_cmd_line.png)
+![UML Sequence Diagram](UML/interactive_cmd_line.png)
 
 ## Example Command
 Input command:
