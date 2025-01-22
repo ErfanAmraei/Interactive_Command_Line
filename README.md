@@ -57,7 +57,7 @@ Input command:
 ### Building and Flashing
 1. Clone the repository:
    ```bash
-   git clone https://github.com/<your-username>/<repository-name>.git
+   git clone https://github.com/ErfanAmraei/Interactie_Command_Line.git
    ```
 2. Open the project in KEIL IDE and build it.
 3. Flash the firmware to the STM32F103C8T6 microcontroller.
